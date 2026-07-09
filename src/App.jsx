@@ -191,9 +191,63 @@ function PwdGate({onSuccess,code,label,desc,num}){
 
 /* ─── Utilitaires ─── */
 function useLS(key,init){
-  const[v,sV]=useState(()=>{try{const s=localStorage.getItem(key);return s?JSON.parse(s):init;}catch{return init;}});
-  useEffect(()=>{try{localStorage.setItem(key,JSON.stringify(v));}catch{}},[v]);
-  return[v,sV];
+  const [v, sV] = useState(init);
+
+  const apiPath = useMemo(() => {
+    if (key === 'pgi3:clubs') return '/api/clubs';
+    if (key === 'pgi3:arbitres') return '/api/arbitres';
+    if (key === 'pgi3:saisons') return '/api/saisons';
+    if (key === 'pgi3:divisions') return '/api/divisions';
+    if (key === 'pgi3:competitions') return '/api/competitions';
+    if (key === 'pgi3:taux') return '/api/taux';
+    if (key === 'pgi3:sanctions') return '/api/sanctions';
+    if (key === 'pgi3:matchs') return '/api/matchs';
+    if (key === 'pgi3:feuilles') return '/api/feuilles';
+    if (key === 'pgi3:presences') return '/api/presences';
+    if (key === 'pgi3:sancapp') return '/api/sancapp';
+    if (key === 'pgi3:refConfirm') return '/api/refconfirmations';
+    if (key === 'pgi3:rapports') return '/api/rapports';
+    return null;
+  }, [key]);
+
+  useEffect(() => {
+    if (!apiPath) {
+      try {
+        const s = localStorage.getItem(key);
+        if (s) sV(JSON.parse(s));
+      } catch {}
+      return;
+    }
+
+    fetch(apiPath)
+      .then(res => res.json())
+      .then(data => {
+        if (data && Array.isArray(data) && data.length > 0) {
+          sV(data);
+        }
+      })
+      .catch(err => console.error("Error loading " + key, err));
+  }, [apiPath, key]);
+
+  const setVal = (newValOrFunc) => {
+    sV(prev => {
+      const nextVal = typeof newValOrFunc === 'function' ? newValOrFunc(prev) : newValOrFunc;
+      if (!apiPath) {
+        try {
+          localStorage.setItem(key, JSON.stringify(nextVal));
+        } catch {}
+      } else {
+        fetch(apiPath, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(nextVal)
+        }).catch(err => console.error("Error syncing " + key, err));
+      }
+      return nextVal;
+    });
+  };
+
+  return [v, setVal];
 }
 const nid=arr=>arr.length?Math.max(...arr.map(x=>x.id))+1:1;
 const uid=()=>Date.now()+Math.floor(Math.random()*100000);
