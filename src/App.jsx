@@ -177,8 +177,6 @@ function LoginPortal({onSuccess,arbitres}){
       onSuccess({role:'assign',label:'Assignation'});
     }else if(trimmed==='1234'){
       onSuccess({role:'compta',label:'Comptabilité'});
-    }else if(trimmed==='5678'){
-      onSuccess({role:'ref',label:'Arbitre'});
     }else{
       const arb=(arbitres||[]).find(x=>x.licence&&x.licence.toLowerCase()===trimmed.toLowerCase());
       if(arb){
@@ -2109,7 +2107,11 @@ function App(){
   const handleLoginSuccess=(usr)=>{
     setUser(usr);
     sMod(usr.role);
-    sSub(NAV[usr.role].items[0].id);
+    if(usr.role==='ref'){
+      sSub('profil');
+    }else{
+      sSub(NAV[usr.role].items[0].id);
+    }
     if(usr.refId) setRefId(usr.refId);
   };
   const handleLogout=()=>{
@@ -2195,7 +2197,7 @@ function App(){
       h('div',null,
         h('div',{className:'narrow',style:{fontSize:10,color:T.ink4,letterSpacing:'0.18em',
           textTransform:'uppercase',marginBottom:4}},'Sections'),
-        ...cur.items.map(it=>h(NavLine,{key:it.id,it,onClick:()=>sMenuOpen(false)})))),
+        ...cur.items.filter(it=>!(it.id==='identite'&&user?.refId)).map(it=>h(NavLine,{key:it.id,it,onClick:()=>sMenuOpen(false)})))),
     h('div',{className:'narrow',style:{borderTop:`1px solid ${T.line}`,paddingTop:14,
       fontSize:10,color:T.ink4,letterSpacing:'0.08em',lineHeight:1.7}},
       'ANAS MOUD',h('br'),'PROJET FDF \u2014 V0.3',
