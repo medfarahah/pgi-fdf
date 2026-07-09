@@ -1,0 +1,165 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+model Club {
+  id        Int     @id @default(autoincrement())
+  nom       String?
+  ville     String?
+  stade     String?
+  couleurs  String?
+  coach     String?
+  telephone String?
+  email     String?
+  notes     String?
+}
+
+model Arbitre {
+  id        Int     @id @default(autoincrement())
+  nom       String?
+  prenom    String?
+  type      String?
+  niveau    String?
+  telephone String?
+  email     String?
+  licence   String?
+  statut    String?
+  nbMatchs  Int?    @default(0)
+}
+
+model Saison {
+  id        Int     @id @default(autoincrement())
+  libelle   String?
+  dateDebut String?
+  dateFin   String?
+  statut    String?
+}
+
+model Division {
+  id         Int     @id @default(autoincrement())
+  saisonId   Int?
+  nom        String?
+  rang       Int?
+  clubIds    Int[]
+  arbitreIds Int[]
+}
+
+model Competition {
+  id          Int     @id @default(autoincrement())
+  saisonId    Int?
+  nom         String?
+  type        String?
+  divisionIds Int[]
+}
+
+model Taux {
+  id         Int     @id @default(autoincrement())
+  saisonId   Int?
+  divisionId Int?
+  division   String?
+  rang       Int?
+  role       String?
+  montant    Float?
+}
+
+model Sanction {
+  id         Int     @id @default(autoincrement())
+  libelle    String?
+  modeCalcul String?
+  valeur     Float?
+}
+
+model Match {
+  id          Int      @id @default(autoincrement())
+  competition String?
+  dom         String?
+  vis         String?
+  date        String?
+  heure       String?
+  journee     String?
+  stade       String?
+  statut      String?
+  notes       String?
+  assigned    Boolean? @default(false)
+  submitted   Boolean? @default(false)
+  ac          String?
+  a1          String?
+  a2          String?
+  a4          String?
+}
+
+model FeuilleMatch {
+  id              Int     @id @default(autoincrement())
+  matchId         Int?
+  saisonId        Int?
+  domicile        String?
+  visiteur        String?
+  competition     String?
+  dateMatch       String?
+  scoreDom        String?
+  scoreVis        String?
+  incidents       String?
+  divisionDom     String?
+  divisionVis     String?
+  divisionRetenue String?
+  statut          String?
+  dateValidation  String?
+}
+
+model PresenceArbitre {
+  id          Int      @id @default(autoincrement())
+  feuilleId   Int?
+  nomArbitre  String?
+  roleArbitre String?
+  present     Boolean? @default(true)
+}
+
+model SanctionAppliquee {
+  id              Int     @id @default(autoincrement())
+  presenceId      Int?
+  typeSanctionId  Int?
+  montantApplique Float?
+  commentaire     String?
+}
+
+model ConfirmationPresence {
+  id        Int     @id @default(autoincrement())
+  matchId   Int?
+  arbitreId Int?
+  date      String?
+}
+
+model RapportArbitre {
+  id                Int     @id @default(autoincrement())
+  matchId           Int?
+  saisonId          Int?
+  arbitreId         Int?
+  redacteurNom      String?
+  scoreDom          String?
+  scoreVis          String?
+  discipline        String?
+  incidents         String?
+  observations      String?
+  equipe            Json?
+  statut            String?
+  dateEnvoi         String?
+  numMatch          String?
+  enFaveurDe        String?
+  assesseur         String?
+  commentaires      String?
+  decisionsImpacte  String?
+  arbitreRecommande String?
+  suiviParticulier  String?
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+}

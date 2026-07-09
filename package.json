@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@prisma/adapter-neon": "^7.8.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "cors": "^2.8.6",
@@ -20,8 +21,11 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@types/node": "^26.1.1",
     "@vitejs/plugin-react": "^4.3.4",
     "prisma": "^7.8.0",
+    "tsx": "^4.23.0",
+    "typescript": "^7.0.2",
     "vite": "^6.0.3"
   }
 }
