@@ -2,14 +2,14 @@ import express from 'express';
 import cors from 'cors';
 import { getDemoData } from './src/demoData.js';
 import dotenv from 'dotenv';
-import pg from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '@prisma/client';
+import { PrismaNeon } from '@prisma/adapter-neon';
+import { PrismaClient } from './src/generated/prisma/index.js';
 
 dotenv.config();
 
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
+const adapter = new PrismaNeon({
+  connectionString: process.env.DATABASE_URL
+});
 const prisma = new PrismaClient({ adapter });
 const app = express();
 app.use(cors());
