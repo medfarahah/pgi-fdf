@@ -2013,19 +2013,136 @@ function RefProfilTab({arbitre,matchs,feuilles,presences,sancApp,taux}){
     if(!p)return acc;
     return acc+netPresence(p,f,sancApp,taux).net;
   },0);
-  const fields=[['Nom',arbitre.nom],['Pr\u00e9nom',arbitre.prenom],['Type',arbitre.type],['Niveau',arbitre.niveau],
-    ['Statut',arbitre.statut],['Licence',arbitre.licence],['T\u00e9l\u00e9phone',arbitre.telephone],['Email',arbitre.email]];
+
+  const initials=`${arbitre.prenom?.[0]||''}${arbitre.nom?.[0]||''}`.toUpperCase();
+
+  const RowItem=({icon,label,value})=>h('div',{style:{
+    display:'flex',
+    alignItems:'center',
+    justifyContent:'space-between',
+    padding:'16px 0',
+    borderBottom:`1px solid ${T.hair}`
+  }},
+    h('div',{style:{display:'flex',alignItems:'center',gap:12}},
+      h('div',{style:{color:T.ink3,display:'flex',alignItems:'center'}},icon),
+      h('div',{className:'narrow',style:{fontSize:13,color:T.ink2}},label)
+    ),
+    h('div',{style:{fontSize:14,fontWeight:600,color:T.ink}},value||'\u2014')
+  );
+
   return h(Section,null,
+    /* Header Card */
+    h('div',{style:{
+      background:`linear-gradient(135deg, ${T.cream}, ${T.paper})`,
+      border:`2px solid ${T.line}`,
+      borderRadius:12,
+      padding:24,
+      display:'flex',
+      alignItems:'center',
+      gap:20,
+      flexWrap:'wrap',
+      boxShadow:'0 4px 15px rgba(21,19,14,0.04)'
+    }},
+      h('div',{style:{
+        width:72,
+        height:72,
+        borderRadius:'50%',
+        background:`linear-gradient(135deg, ${T.green}, ${T.greenInk})`,
+        display:'flex',
+        alignItems:'center',
+        justifyContent:'center',
+        color:'#fff',
+        fontSize:24,
+        fontWeight:700,
+        boxShadow:'0 4px 10px rgba(0,0,0,0.1)'
+      }},initials),
+      h('div',{style:{display:'flex',flexDirection:'column',gap:4}},
+        h('div',{className:'disp',style:{fontSize:24,fontWeight:700,color:T.ink}},nm),
+        h('div',{style:{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}},
+          h(Badge,{tone:'green'},`Licence: ${arbitre.licence||'\u2014'}`),
+          h('span',{className:'narrow',style:{fontSize:12,color:T.ink3,fontWeight:600}},`${arbitre.type||'Arbitre'} \u2022 ${arbitre.niveau||'\u2014'}`)
+        )
+      )
+    ),
+
+    /* Grid cards stats */
+    h('div',{className:'grid-mobile-1',style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:16}},
+      /* Card 1 */
+      h('div',{style:{background:T.paper,border:`1px solid ${T.line}`,borderRadius:12,padding:20,boxShadow:'0 4px 12px rgba(0,0,0,0.02)'}},
+        h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}},
+          h('div',{className:'narrow',style:{fontSize:11,color:T.ink3,fontWeight:600,textTransform:'uppercase',letterSpacing:'0.06em'}},'D\u00e9signations'),
+          h('div',{style:{color:T.greenInk}},
+            h('svg',{width:22,height:22,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:2},
+              h('rect',{x:3,y:4,width:18,height:18,rx:2,ry:2}),
+              h('line',{x1:16,y1:2,x2:16,y2:6}),
+              h('line',{x1:8,y1:2,x2:8,y2:6}),
+              h('line',{x1:3,y1:10,x2:21,y2:10})))
+        ),
+        h('div',{className:'disp',style:{fontSize:32,fontWeight:700,color:T.ink}},designes)
+      ),
+      /* Card 2 */
+      h('div',{style:{background:T.paper,border:`1px solid ${T.line}`,borderRadius:12,padding:20,boxShadow:'0 4px 12px rgba(0,0,0,0.02)'}},
+        h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}},
+          h('div',{className:'narrow',style:{fontSize:11,color:T.ink3,fontWeight:600,textTransform:'uppercase',letterSpacing:'0.06em'}},'Matchs valid\u00e9s'),
+          h('div',{style:{color:T.green}},
+            h('svg',{width:22,height:22,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:2},
+              h('path',{d:'M22 11.08V12a10 10 0 1 1-5.93-9.14'}),
+              h('polyline',{points:'22 4 12 14.01 9 11.01'})))
+        ),
+        h('div',{className:'disp',style:{fontSize:32,fontWeight:700,color:T.ink}},valides)
+      ),
+      /* Card 3 */
+      h('div',{style:{background:T.paper,border:`1px solid ${T.line}`,borderRadius:12,padding:20,boxShadow:'0 4px 12px rgba(0,0,0,0.02)'}},
+        h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}},
+          h('div',{className:'narrow',style:{fontSize:11,color:T.ink3,fontWeight:600,textTransform:'uppercase',letterSpacing:'0.06em'}},'Net cumul\u00e9'),
+          h('div',{style:{color:T.greenInk}},
+            h('svg',{width:22,height:22,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:2},
+              h('rect',{x:2,y:4,width:20,height:16,rx:2}),
+              h('line',{x1:12,y1:20,x2:12,y2:4}),
+              h('path',{d:'M12 10a2.5 2.5 0 0 0 0-5 2.5 2.5 0 0 0 0 5z'}),
+              h('path',{d:'M12 19a2.5 2.5 0 0 0 0-5 2.5 2.5 0 0 0 0 5z'})))
+        ),
+        h('div',{className:'disp',style:{fontSize:24,fontWeight:700,color:T.greenInk,lineHeight:'38px'}},fdj(netTotal))
+      )
+    ),
+
+    /* Personal info Settings List */
     h(Card,null,
-      h(CardHead,{title:'Mon profil',sub:'Informations enregistr\u00e9es par la f\u00e9d\u00e9ration.'}),
-      h('div',{className:'grid-mobile-1',style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:18,marginBottom:28}},
-        ...fields.map(([l,v])=>h(Field,{key:l,label:l},
-          h('div',{style:{...S.field,display:'flex',alignItems:'center'}},v||'\u2014')))),
-      h('div',{className:'grid-mobile-1',style:{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:0,borderTop:`1px solid ${T.line}`}},
-        [{l:'D\u00e9signations',v:designes},{l:'Feuilles valid\u00e9es',v:valides},{l:'Net cumul\u00e9',v:fdj(netTotal)}]
-          .map((s,i)=>h('div',{key:s.l,style:{padding:'18px 16px',borderRight:i<2?`1px solid ${T.hair}`:'none'}},
-            h('div',{className:'disp',style:{fontSize:28,fontWeight:700,color:i===2?T.greenInk:T.ink}},s.v),
-            h('div',{className:'narrow',style:{fontSize:11,color:T.ink3,marginTop:6,letterSpacing:'0.08em',textTransform:'uppercase'}},s.l))))));
+      h(CardHead,{title:'Coordonn\u00e9es et informations'}),
+      h('div',{style:{...ST.body,paddingTop:8}},
+        RowItem({
+          icon:h('svg',{width:18,height:18,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:2},h('path',{d:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'})),
+          label:'N\u00b0 de Licence',
+          value:arbitre.licence
+        }),
+        RowItem({
+          icon:h('svg',{width:18,height:18,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:2},h('circle',{cx:12,cy:8,r:7}),h('polyline',{points:'8.21 13.89 7 23 12 20 17 23 15.79 13.88'})),
+          label:'Grade / Niveau',
+          value:arbitre.niveau
+        }),
+        RowItem({
+          icon:h('svg',{width:18,height:18,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:2},h('path',{d:'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'}),h('circle',{cx:12,cy:7,r:4})),
+          label:'Type d\u2019arbitrage',
+          value:arbitre.type
+        }),
+        RowItem({
+          icon:h('svg',{width:18,height:18,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:2},h('path',{d:'M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z'})),
+          label:'T\u00e9l\u00e9phone',
+          value:arbitre.telephone
+        }),
+        RowItem({
+          icon:h('svg',{width:18,height:18,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:2},h('path',{d:'M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z'}),h('polyline',{points:'22,6 12,13 2,6'})),
+          label:'Adresse Email',
+          value:arbitre.email
+        }),
+        RowItem({
+          icon:h('svg',{width:18,height:18,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:2},h('circle',{cx:12,cy:12,r:10}),h('line',{x1:12,y1:8,x2:12,y2:16}),h('line',{x1:8,y1:12,x2:16,y2:12})),
+          label:'Statut administratif',
+          value:arbitre.statut
+        })
+      )
+    )
+  );
 }
 
 function RefView({sub,props}){
