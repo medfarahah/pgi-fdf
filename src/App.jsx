@@ -300,7 +300,7 @@ function ClubsTab({clubs,setClubs}){
     h(Card,null,
       h(CardHead,{title:editId?'Modifier le club':'Enregistrement d\u2019un club',sub:null}),
       h('div',{style:ST.body},
-        h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:18}},
+        h('div',{className:'grid-mobile-1',style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:18}},
           h(Field,{label:'Nom du club *',span:2},h(Inp,{value:f.nom,onChange:ch('nom'),placeholder:'Ex : AS Djibouti'})),
           h(Field,{label:'Ville *'},h(Inp,{value:f.ville,onChange:ch('ville')})),
           h(Field,{label:'Stade / Terrain'},h(Inp,{value:f.stade,onChange:ch('stade')})),
@@ -350,7 +350,7 @@ function ArbitresTab({arbitres,setArbitres}){
     h(Card,null,
       h(CardHead,{title:editId?'Modifier l\u2019arbitre':'Enregistrement d\u2019un arbitre',sub:'Type et statut requis.'}),
       h('div',{style:ST.body},
-        h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:18}},
+        h('div',{className:'grid-mobile-1',style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:18}},
           h(Field,{label:'Pr\u00e9nom *'},h(Inp,{value:f.prenom,onChange:ch('prenom')})),
           h(Field,{label:'Nom *',span:2},h(Inp,{value:f.nom,onChange:ch('nom')})),
           h(Field,{label:'Type *'},h(Sel,{value:f.type,onChange:ch('type')},
@@ -414,7 +414,7 @@ function MatchsTab({matchs,setMatchs,clubs,competitions,divisions,actS}){
     h(Card,null,
       h(CardHead,{title:'Enregistrement d\u2019un match',sub:null}),
       h('div',{style:ST.body},
-        h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:18}},
+        h('div',{className:'grid-mobile-1',style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:18}},
           h(Field,{label:'Comp\u00e9tition'},h(Sel,{value:f.competition,onChange:e=>{ch('competition')(e);sF(p=>({...p,dom:'',vis:''}));}},
             h('option',{value:''},(actS?compsSaison:competitions).length?'\u2014 S\u00e9lectionner \u2014':'Aucune comp\u00e9tition pour la saison active'),
             ...(actS?compsSaison:competitions).map(c=>h('option',{key:c.id,value:c.nom},c.nom)))),
@@ -591,7 +591,7 @@ function AssignTab({matchs,setMatchs,arbitres,setArbitres,actS,competitions,divi
     h(ConfirmModal,{show:!!confirm,...(confirm||{}),onCancel:()=>sConfirm(null)}),
     !actS&&h(Notice,{msg:'Aucune saison active. Activez une saison dans le module Comptabilit\u00e9 pour assigner.',tone:'warn'}),
     /* bandeau chiffres */
-    h('div',{style:{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:0,borderTop:`1px solid ${T.line}`,borderBottom:`1px solid ${T.line}`,marginBottom:32}},
+    h('div',{className:'grid-mobile-1',style:{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:0,borderTop:`1px solid ${T.line}`,borderBottom:`1px solid ${T.line}`,marginBottom:32}},
       ...stats.map((s,i)=>h('div',{key:s.l,style:{padding:'18px 16px',borderRight:i<4?`1px solid ${T.hair}`:'none'}},
         h('div',{className:'disp',style:{fontSize:34,fontWeight:700,color:T.ink,lineHeight:1}},s.v),
         h('div',{className:'narrow',style:{fontSize:11,color:T.ink3,marginTop:6,letterSpacing:'0.08em',textTransform:'uppercase'}},s.l)))),
@@ -740,7 +740,7 @@ function CSanctions({sanctions,setSanctions}){
       h(CardHead,{title:editId?'Modifier la sanction':'Nouveau type de sanction',
         sub:null}),
       h('div',{style:ST.body},
-        h('div',{style:{display:'grid',gridTemplateColumns:'2fr 1fr 1fr',gap:18}},
+        h('div',{className:'grid-mobile-1',style:{display:'grid',gridTemplateColumns:'2fr 1fr 1fr',gap:18}},
           h(Field,{label:'Libell\u00e9'},h(Inp,{value:f.libelle,onChange:ch('libelle'),placeholder:'Ex : Absence non justifi\u00e9e'})),
           h(Field,{label:'Mode de calcul'},h(Sel,{value:f.modeCalcul,onChange:ch('modeCalcul')},
             h('option',{value:'Fixe'},'Montant fixe (FDJ)'),h('option',{value:'Pourcentage'},'Pourcentage (%)'))),
@@ -868,12 +868,12 @@ function CFeuilles({feuilles,setFeuilles,presences,setPresences,sancApp,setSancA
     h(Card,null,
       h(CardHead,{title:'Match',sub:'Division et taux d\u00e9duits automatiquement.'}),
       h('div',{style:ST.body},
-        h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:18}},
+        h('div',{className:'grid-mobile-1',style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:18}},
           h(Field,{label:'Date'},h('div',{style:{...S.field,display:'flex',alignItems:'center'}},curMatch.date||'\u2014')),
           h(Field,{label:'Comp\u00e9tition'},h('div',{style:{...S.field,display:'flex',alignItems:'center'}},curMatch.competition||'\u2014')),
           h(Field,{label:'Division retenue (RG01)'},
             h('div',{style:{...S.field,display:'flex',alignItems:'center',color:T.greenD,fontWeight:700,borderBottom:`1.5px solid ${T.green}`}},dRet||'Non d\u00e9duite'))),
-        h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:18,marginTop:16}},
+        h('div',{className:'grid-mobile-1',style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:18,marginTop:16}},
           h(Field,{label:`Score \u2014 ${curMatch.dom}`},h(Inp,{value:scoreDom,onChange:e=>sScoreDom(e.target.value),type:'number',placeholder:'0'})),
           h(Field,{label:`Score \u2014 ${curMatch.vis}`},h(Inp,{value:scoreVis,onChange:e=>sScoreVis(e.target.value),type:'number',placeholder:'0'}))),
         h('div',{style:{marginTop:16}},h(Field,{label:'Incidents / Observations'},
@@ -905,18 +905,18 @@ function CFeuilles({feuilles,setFeuilles,presences,setPresences,sancApp,setSancA
             )
           ),
           // DATE, DIVISION, N° MATCH
-          h('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'18px',borderBottom:`1px solid ${T.line}`,paddingBottom:'14px'}},
+          h('div', {className:'grid-mobile-1', style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'18px',borderBottom:`1px solid ${T.line}`,paddingBottom:'14px'}},
             h(Field,{label:'DATE :'},h('div',{style:S.field},curMatch.date||'\u2014')),
             h(Field,{label:'DIVISION :'},h('div',{style:S.field},curMatch.competition||'\u2014')),
             h(Field,{label:'N° DU MATCH :'},h('div',{style:S.field},rp.numMatch||rp.matchId||'\u2014'))
           ),
           // EQUIPE A, EQUIPE B
-          h('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'18px',borderBottom:`1px solid ${T.line}`,paddingBottom:'14px'}},
+          h('div', {className:'grid-mobile-1', style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'18px',borderBottom:`1px solid ${T.line}`,paddingBottom:'14px'}},
             h(Field,{label:'EQUIPE A :'},h('div',{style:{...S.field,fontWeight:700}},curMatch.dom||'\u2014')),
             h(Field,{label:'EQUIPE B :'},h('div',{style:{...S.field,fontWeight:700}},curMatch.vis||'\u2014'))
           ),
           // SCORE, EN FAVEUR DE
-          h('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'18px',borderBottom:`1px solid ${T.line}`,paddingBottom:'14px'}},
+          h('div', {className:'grid-mobile-1', style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'18px',borderBottom:`1px solid ${T.line}`,paddingBottom:'14px'}},
             h(Field,{label:`SCORE ${curMatch.dom}`},h('div',{style:S.field},rp.scoreDom)),
             h(Field,{label:`SCORE ${curMatch.vis}`},h('div',{style:S.field},rp.scoreVis)),
             h(Field,{label:'EN FAVEUR DE :'},h('div',{style:S.field},rp.enFaveurDe||(rp.scoreDom > rp.scoreVis ? curMatch.dom : rp.scoreVis > rp.scoreDom ? curMatch.vis : 'Nul')||'\u2014'))
@@ -928,7 +928,7 @@ function CFeuilles({feuilles,setFeuilles,presences,setPresences,sancApp,setSancA
           // EQUIPE ARBITRALE
           h('div', {style:{borderBottom:`1px solid ${T.line}`,paddingBottom:'14px'}},
             h('div',{style:S.label,marginBottom:'10px'},'EQUIPE ARBITRALE'),
-            h('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'18px'}},
+            h('div', {className:'grid-mobile-1', style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'18px'}},
               (rp.equipe||[]).map((e,i)=>h('div',{key:i,style:{borderBottom:`1px solid ${T.hair}`,paddingBottom:'8px'}},
                 h(Field,{label:`${e.role==='Central'?'ARBITRE 1 (CENTRAL)':e.role==='Assistant'&&i===1?'ARBITRE 2 (ASSISTANT 1)':e.role==='Assistant'&&i===2?'ARBITRE 3 (ASSISTANT 2)':'ARBITRE 4 (4ème)'} :`},
                   h('div',{style:{display:'flex',alignItems:'center',gap:'10px'}},
@@ -966,7 +966,7 @@ function CFeuilles({feuilles,setFeuilles,presences,setPresences,sancApp,setSancA
       h(CardHead,{title:'Arbitres, pr\u00e9sences et sanctions'}),
       h('div',{style:ST.body},h(Section,{gap:14},
         ...arbLines.map((a,i)=>h('div',{key:i,style:{borderBottom:`1px solid ${T.hair}`,paddingBottom:16}},
-          h('div',{style:{display:'grid',gridTemplateColumns:'2fr 1.2fr 1.2fr 1.4fr',gap:14,alignItems:'flex-end'}},
+          h('div',{className:'grid-mobile-1',style:{display:'grid',gridTemplateColumns:'2fr 1.2fr 1.2fr 1.4fr',gap:14,alignItems:'flex-end'}},
             h(Field,{label:`Arbitre ${i+1}`},h('div',{style:{...S.field,display:'flex',alignItems:'center',fontWeight:600}},a.nom||'\u2014')),
             h(Field,{label:'R\u00f4le'},h(Badge,{tone:tRole(a.role)},a.role)),
             h(Field,{label:'Pr\u00e9sence'},h(Sel,{value:a.present?'oui':'non',onChange:e=>updAL(i,'present',e.target.value==='oui')},
@@ -1092,16 +1092,16 @@ function CFeuilles({feuilles,setFeuilles,presences,setPresences,sancApp,setSancA
               h('div', {style:{fontSize:'12px',fontWeight:600,color:T.ink3,textTransform:'uppercase',letterSpacing:'0.1em'}}, 'Rapport Officiel d\'Arbitrage')
             )
           ),
-            h('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'15px',borderBottom:`1px solid ${T.line}`,paddingBottom:'12px'}},
+            h('div', {className:'grid-mobile-1', style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'15px',borderBottom:`1px solid ${T.line}`,paddingBottom:'12px'}},
               h(Field,{label:'DATE :'},h('div',{style:S.field},m?.date||'\u2014')),
               h(Field,{label:'DIVISION :'},h('div',{style:S.field},m?.competition||'\u2014')),
               h(Field,{label:'N° DU MATCH :'},h('div',{style:S.field},report.numMatch||report.matchId||'\u2014'))
             ),
-            h('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'15px',borderBottom:`1px solid ${T.line}`,paddingBottom:'12px'}},
+            h('div', {className:'grid-mobile-1', style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'15px',borderBottom:`1px solid ${T.line}`,paddingBottom:'12px'}},
               h(Field,{label:'EQUIPE A :'},h('div',{style:{...S.field,fontWeight:700}},m?.dom||'\u2014')),
               h(Field,{label:'EQUIPE B :'},h('div',{style:{...S.field,fontWeight:700}},m?.vis||'\u2014'))
             ),
-            h('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'15px',borderBottom:`1px solid ${T.line}`,paddingBottom:'12px'}},
+            h('div', {className:'grid-mobile-1', style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'15px',borderBottom:`1px solid ${T.line}`,paddingBottom:'12px'}},
               h(Field,{label:`SCORE ${m?.dom || 'DOMICILE'}`},h('div',{style:S.field},report.scoreDom)),
               h(Field,{label:`SCORE ${m?.vis || 'VISITEUR'}`},h('div',{style:S.field},report.scoreVis)),
               h(Field,{label:'EN FAVEUR DE :'},h('div',{style:S.field},report.enFaveurDe||(report.scoreDom > report.scoreVis ? m?.dom : report.scoreVis > report.scoreDom ? m?.vis : 'Nul')||'\u2014'))
@@ -1111,7 +1111,7 @@ function CFeuilles({feuilles,setFeuilles,presences,setPresences,sancApp,setSancA
             ),
             h('div', {style:{borderBottom:`1px solid ${T.line}`,paddingBottom:'12px'}},
               h('div',{style:S.label,marginBottom:'8px'},'EQUIPE ARBITRALE'),
-              h('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'15px'}},
+              h('div', {className:'grid-mobile-1', style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'15px'}},
                 (report.equipe||[]).map((e,i)=>h('div',{key:i,style:{borderBottom:`1px solid ${T.hair}`,paddingBottom:'6px'}},
                   h(Field,{label:`${e.role==='Central'?'ARBITRE 1 (CENTRAL)':e.role==='Assistant'&&i===1?'ARBITRE 2 (ASSISTANT 1)':e.role==='Assistant'&&i===2?'ARBITRE 3 (ASSISTANT 2)':'ARBITRE 4 (4ème)'} :`},
                     h('div',{style:{display:'flex',alignItems:'center',gap:'8px'}},
@@ -1187,18 +1187,18 @@ function CRapports({rapports,matchs,feuilles,actS}){
             )
           ),
         // DATE, DIVISION, N° MATCH
-        h('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'20px',borderBottom:`1px solid ${T.line}`,paddingBottom:'16px'}},
+        h('div', {className:'grid-mobile-1', style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'20px',borderBottom:`1px solid ${T.line}`,paddingBottom:'16px'}},
           h(Field,{label:'DATE :'},h('div',{style:S.field},cur.m?.date||'\u2014')),
           h(Field,{label:'DIVISION :'},h('div',{style:S.field},cur.m?.competition||'\u2014')),
           h(Field,{label:'N° DU MATCH :'},h('div',{style:S.field},cur.numMatch||cur.matchId||'\u2014'))
         ),
         // EQUIPE A, EQUIPE B
-        h('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'20px',borderBottom:`1px solid ${T.line}`,paddingBottom:'16px'}},
+        h('div', {className:'grid-mobile-1', style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'20px',borderBottom:`1px solid ${T.line}`,paddingBottom:'16px'}},
           h(Field,{label:'EQUIPE A :'},h('div',{style:{...S.field,fontWeight:700}},cur.m?.dom||'\u2014')),
           h(Field,{label:'EQUIPE B :'},h('div',{style:{...S.field,fontWeight:700}},cur.m?.vis||'\u2014'))
         ),
         // SCORE, EN FAVEUR DE
-        h('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'20px',borderBottom:`1px solid ${T.line}`,paddingBottom:'16px'}},
+        h('div', {className:'grid-mobile-1', style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'20px',borderBottom:`1px solid ${T.line}`,paddingBottom:'16px'}},
           h(Field,{label:`SCORE ${cur.m?.dom}`},h('div',{style:S.field},cur.scoreDom)),
           h(Field,{label:`SCORE ${cur.m?.vis}`},h('div',{style:S.field},cur.scoreVis)),
           h(Field,{label:'EN FAVEUR DE :'},h('div',{style:S.field},cur.enFaveurDe||(cur.scoreDom > cur.scoreVis ? cur.m?.dom : cur.scoreVis > cur.scoreDom ? cur.m?.vis : 'Nul')||'\u2014'))
@@ -1210,7 +1210,7 @@ function CRapports({rapports,matchs,feuilles,actS}){
         // EQUIPE ARBITRALE
         h('div', {style:{borderBottom:`1px solid ${T.line}`,paddingBottom:'16px'}},
           h('div',{style:S.label,marginBottom:'12px'},'EQUIPE ARBITRALE'),
-          h('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'20px'}},
+          h('div', {className:'grid-mobile-1', style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'20px'}},
             (cur.equipe||[]).map((e,i)=>h('div',{key:i,style:{borderBottom:`1px solid ${T.hair}`,paddingBottom:'8px'}},
               h(Field,{label:`${e.role==='Central'?'ARBITRE 1 (CENTRAL)':e.role==='Assistant'&&i===1?'ARBITRE 2 (ASSISTANT 1)':e.role==='Assistant'&&i===2?'ARBITRE 3 (ASSISTANT 2)':'ARBITRE 4 (4ème)'} :`},
                 h('div',{style:{display:'flex',alignItems:'center',gap:'10px'}},
@@ -1300,7 +1300,7 @@ function CRecap({feuilles,presences,sancApp,taux,saisons}){
     h(Card,null,
       h(CardHead,{title:'Filtres'}),
       h('div',{style:ST.body},
-        h('div',{style:{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:18}},
+        h('div',{className:'grid-mobile-1',style:{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:18}},
           h(Field,{label:'Saison'},h(Sel,{value:fS,onChange:e=>sFS(e.target.value)},
             h('option',{value:''},'Toutes'),...saisons.map(s=>h('option',{key:s.id,value:s.id},s.libelle)))),
           h(Field,{label:'Mois'},h(Sel,{value:fM,onChange:e=>sFM(e.target.value)},
@@ -1363,7 +1363,7 @@ function SaisonsTab({saisons,setSaisons,taux,setTaux,divisions,setDivisions,comp
     h(Card,null,
       h(CardHead,{title:'Cr\u00e9er une saison',sub:'Le point de d\u00e9part.'}),
       h('div',{style:ST.body},
-        h('div',{style:{display:'grid',gridTemplateColumns:'2fr 1fr 1fr',gap:22}},
+        h('div',{className:'grid-mobile-1',style:{display:'grid',gridTemplateColumns:'2fr 1fr 1fr',gap:22}},
           h(Field,{label:'Libell\u00e9'},h(Inp,{value:lib,onChange:e=>sLib(e.target.value),placeholder:'2024-2025'})),
           h(Field,{label:'D\u00e9but'},h(Inp,{value:dd,onChange:e=>sDd(e.target.value),type:'date'})),
           h(Field,{label:'Fin'},h(Inp,{value:df,onChange:e=>sDf(e.target.value),type:'date'}))),
@@ -1429,7 +1429,7 @@ function DivisionsTab({divisions,setDivisions,saisons,clubs,arbitres,taux,setTau
     h(Card,null,
       h(CardHead,{title:'Divisions',sub:'Cr\u00e9\u00e9es dans une saison, avec leurs clubs et arbitres.'}),
       h('div',{style:ST.body},
-        h('div',{style:{display:'grid',gridTemplateColumns:'2fr 2fr 1fr',gap:22,alignItems:'flex-end'}},
+        h('div',{className:'grid-mobile-1',style:{display:'grid',gridTemplateColumns:'2fr 2fr 1fr',gap:22,alignItems:'flex-end'}},
           h(Field,{label:'Saison'},h(Sel,{value:saisonId,onChange:e=>{sSaisonId(e.target.value);sExpanded(null);}},
             h('option',{value:''},'\u2014 Choisir \u2014'),...saisons.map(s=>h('option',{key:s.id,value:s.id},s.libelle)))),
           h(Field,{label:'Nom de la division'},h(Inp,{value:nom,onChange:e=>sNom(e.target.value),placeholder:'D1, \u00c9lite, Honneur...'})),
@@ -1506,7 +1506,7 @@ function CompetitionsTab({competitions,setCompetitions,saisons,divisions}){
     h(Card,null,
       h(CardHead,{title:'Comp\u00e9titions',sub:'Rattach\u00e9es \u00e0 une saison, avec leurs divisions.'}),
       h('div',{style:ST.body},
-        h('div',{style:{display:'grid',gridTemplateColumns:'2fr 2fr 1.5fr',gap:22,alignItems:'flex-end'}},
+        h('div',{className:'grid-mobile-1',style:{display:'grid',gridTemplateColumns:'2fr 2fr 1.5fr',gap:22,alignItems:'flex-end'}},
           h(Field,{label:'Saison'},h(Sel,{value:saisonId,onChange:e=>{sSaisonId(e.target.value);sExpanded(null);}},
             h('option',{value:''},'\u2014 Choisir \u2014'),...saisons.map(s=>h('option',{key:s.id,value:s.id},s.libelle)))),
           h(Field,{label:'Nom'},h(Inp,{value:nom,onChange:e=>sNom(e.target.value),placeholder:'Coupe de Djibouti'})),
@@ -1626,7 +1626,7 @@ function RefDesignationsTab({arbitre,matchs,feuilles,refConfirmations,setRefConf
   return h(RefGate,{arbitre},
     h(Section,null,
       !actS&&h(Notice,{msg:'Aucune saison active.',tone:'warn'}),
-      h('div',{style:{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:0,borderTop:`1px solid ${T.line}`,borderBottom:`1px solid ${T.line}`,marginBottom:32}},
+      h('div',{className:'grid-mobile-1',style:{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:0,borderTop:`1px solid ${T.line}`,borderBottom:`1px solid ${T.line}`,marginBottom:32}},
         [{l:'\u00c0 venir',v:aVenir.length},{l:'Pass\u00e9s (non valid\u00e9s)',v:passes.length},{l:'Total d\u00e9sign\u00e9s',v:rows.length}]
           .map((s,i)=>h('div',{key:s.l,style:{padding:'18px 16px',borderRight:i<2?`1px solid ${T.hair}`:'none'}},
             h('div',{className:'disp',style:{fontSize:34,fontWeight:700,color:T.ink,lineHeight:1}},s.v),
@@ -1755,18 +1755,18 @@ function RefRapportsTab({arbitre,matchs,feuilles,rapports,setRapports,actS,saiso
             )
           ),
           // DATE, DIVISION, N° MATCH
-          h('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'20px',borderBottom:`1px solid ${T.line}`,paddingBottom:'16px'}},
+          h('div', {className:'grid-mobile-1', style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'20px',borderBottom:`1px solid ${T.line}`,paddingBottom:'16px'}},
             h(Field,{label:'DATE :'},h('div',{style:S.field},curM.date||'\u2014')),
             h(Field,{label:'DIVISION :'},h('div',{style:S.field},curM.competition||'\u2014')),
             h(Field,{label:'N° DU MATCH :'},h(Inp,{value:numMatch,onChange:e=>sNumMatch(e.target.value),placeholder:'Ex: 101'}))
           ),
           // EQUIPE A, EQUIPE B
-          h('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'20px',borderBottom:`1px solid ${T.line}`,paddingBottom:'16px'}},
+          h('div', {className:'grid-mobile-1', style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'20px',borderBottom:`1px solid ${T.line}`,paddingBottom:'16px'}},
             h(Field,{label:'EQUIPE A :'},h('div',{style:{...S.field,fontWeight:700}},curM.dom||'\u2014')),
             h(Field,{label:'EQUIPE B :'},h('div',{style:{...S.field,fontWeight:700}},curM.vis||'\u2014'))
           ),
           // SCORE, EN FAVEUR DE
-          h('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'20px',borderBottom:`1px solid ${T.line}`,paddingBottom:'16px'}},
+          h('div', {className:'grid-mobile-1', style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'20px',borderBottom:`1px solid ${T.line}`,paddingBottom:'16px'}},
             h(Field,{label:`SCORE ${curM.dom}`},h(Inp,{value:scoreDom,onChange:e=>sScoreDom(e.target.value),type:'number',placeholder:'0'})),
             h(Field,{label:`SCORE ${curM.vis}`},h(Inp,{value:scoreVis,onChange:e=>sScoreVis(e.target.value),type:'number',placeholder:'0'})),
             h(Field,{label:'EN FAVEUR DE :'},h(Sel,{value:enFaveurDe,onChange:e=>sEnFaveurDe(e.target.value)},
@@ -1783,7 +1783,7 @@ function RefRapportsTab({arbitre,matchs,feuilles,rapports,setRapports,actS,saiso
           // EQUIPE ARBITRALE
           h('div', {style:{borderBottom:`1px solid ${T.line}`,paddingBottom:'16px'}},
             h('div',{style:S.label,marginBottom:'14px'},'EQUIPE ARBITRALE'),
-            h('div', {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'20px'}},
+            h('div', {className:'grid-mobile-1', style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'20px'}},
               equipe.map((e,i)=>h('div',{key:i,style:{borderBottom:`1px solid ${T.hair}`,paddingBottom:'12px'}},
                 h(Field,{label:`${e.role==='Central'?'ARBITRE 1 (CENTRAL)':e.role==='Assistant'&&i===1?'ARBITRE 2 (ASSISTANT 1)':e.role==='Assistant'&&i===2?'ARBITRE 3 (ASSISTANT 2)':'ARBITRE 4 (4ème)'} :`},
                   h('div',{style:{display:'flex',alignItems:'center',gap:'10px',marginTop:'6px'}},
@@ -1900,7 +1900,7 @@ function RefPaiementsTab({arbitre,feuilles,presences,sancApp,taux,saisons}){
     }).sort((a,b)=>String(b.dateMatch||'').localeCompare(String(a.dateMatch||'')));
   },[feuilles,presences,sancApp,taux,nm,fS]);
   const tot=rows.reduce((a,r)=>({brut:a.brut+r.pay.brut,ded:a.ded+r.pay.ded,net:a.net+r.pay.net}),{brut:0,ded:0,net:0});
-  const stats=h('div',{style:{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:0,borderTop:`1px solid ${T.line}`,borderBottom:`1px solid ${T.line}`,marginBottom:32}},
+  const stats=h('div',{className:'grid-mobile-1',style:{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:0,borderTop:`1px solid ${T.line}`,borderBottom:`1px solid ${T.line}`,marginBottom:32}},
     [{l:'Brut total',v:fdj(tot.brut)},{l:'D\u00e9ductions',v:tot.ded>0?`\u2212 ${fdj(tot.ded)}`:'\u2014'},{l:'Net \u00e0 percevoir',v:fdj(tot.net)}]
       .map((s,i)=>h('div',{key:s.l,style:{padding:'18px 16px',borderRight:i<2?`1px solid ${T.hair}`:'none'}},
         h('div',{className:'disp',style:{fontSize:i===2?26:22,fontWeight:700,color:i===2?T.greenInk:T.ink,lineHeight:1}},s.v),
@@ -1947,10 +1947,10 @@ function RefProfilTab({arbitre,matchs,feuilles,presences,sancApp,taux}){
   return h(Section,null,
     h(Card,null,
       h(CardHead,{title:'Mon profil',sub:'Informations enregistr\u00e9es par la f\u00e9d\u00e9ration.'}),
-      h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:18,marginBottom:28}},
+      h('div',{className:'grid-mobile-1',style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:18,marginBottom:28}},
         ...fields.map(([l,v])=>h(Field,{key:l,label:l},
           h('div',{style:{...S.field,display:'flex',alignItems:'center'}},v||'\u2014')))),
-      h('div',{style:{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:0,borderTop:`1px solid ${T.line}`}},
+      h('div',{className:'grid-mobile-1',style:{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:0,borderTop:`1px solid ${T.line}`}},
         [{l:'D\u00e9signations',v:designes},{l:'Feuilles valid\u00e9es',v:valides},{l:'Net cumul\u00e9',v:fdj(netTotal)}]
           .map((s,i)=>h('div',{key:s.l,style:{padding:'18px 16px',borderRight:i<2?`1px solid ${T.hair}`:'none'}},
             h('div',{className:'disp',style:{fontSize:28,fontWeight:700,color:i===2?T.greenInk:T.ink}},s.v),
@@ -2026,6 +2026,7 @@ const NAV={
 function App(){
   const[mod,sMod]=useState('assign');
   const[sub,sSub]=useState('clubs');
+  const[menuOpen,sMenuOpen]=useState(false);
   const[unlocked,sUnlocked]=useState({assign:false,compta:false,ref:false});
   const[clubs,setClubs]=useLS('pgi3:clubs',[]);
   const[arbitres,setArbitres]=useLS('pgi3:arbitres',[]);
@@ -2056,9 +2057,9 @@ function App(){
   const cur=NAV[mod];const isUnlocked=unlocked[mod];
   const switchMod=m=>{sMod(m);sSub(NAV[m].items[0].id);};
 
-  const NavLine=({it})=>{
+  const NavLine=({it,onClick})=>{
     const on=sub===it.id;const[hv,sHv]=useState(false);
-    return h('button',{onClick:()=>sSub(it.id),onMouseEnter:()=>sHv(true),onMouseLeave:()=>sHv(false),
+    return h('button',{onClick:()=>{sSub(it.id);onClick&&onClick();},onMouseEnter:()=>sHv(true),onMouseLeave:()=>sHv(false),
       style:{display:'flex',alignItems:'baseline',gap:12,width:'100%',textAlign:'left',
         background:'transparent',border:'none',borderBottom:`1px solid ${on?T.line:'transparent'}`,
         padding:'10px 0',cursor:'pointer',transition:'all .12s'}},
@@ -2070,7 +2071,7 @@ function App(){
         transition:'all .12s',lineHeight:1.1}},it.label));
   };
 
-  const sidebar=h('div',{className:'no-print',style:{width:264,flexShrink:0,background:T.cream,
+  const sidebar=h('div',{className:`no-print sidebar ${menuOpen ? 'open' : ''}`,style:{width:264,flexShrink:0,background:T.cream,
     borderRight:`1px solid ${T.line}`,height:'100vh',position:'sticky',top:0,
     display:'flex',flexDirection:'column',padding:'26px 24px 20px'}},
     /* Logo + marque */
@@ -2088,7 +2089,7 @@ function App(){
     h('div',{style:{marginBottom:24}},
       ...Object.entries(NAV).map(([k,v])=>{
         const on=mod===k;const lock=!unlocked[k];
-        return h('button',{key:k,onClick:()=>switchMod(k),
+        return h('button',{key:k,onClick:()=>{switchMod(k);sMenuOpen(false);},
           style:{display:'flex',alignItems:'baseline',gap:12,width:'100%',textAlign:'left',
             background:'transparent',border:'none',padding:'8px 0',cursor:'pointer'}},
           h('span',{className:'narrow',style:{fontSize:12,fontWeight:700,letterSpacing:'0.2em',
@@ -2104,7 +2105,7 @@ function App(){
         ? h('div',null,
             h('div',{className:'narrow',style:{fontSize:10,color:T.ink4,letterSpacing:'0.18em',
               textTransform:'uppercase',marginBottom:4}},'Sections'),
-            ...cur.items.map(it=>h(NavLine,{key:it.id,it})))
+            ...cur.items.map(it=>h(NavLine,{key:it.id,it,onClick:()=>sMenuOpen(false)})))
         : h('p',{className:'narrow',style:{fontSize:12,color:T.ink4,lineHeight:1.7,
             textTransform:'uppercase',letterSpacing:'0.06em'}},'Module verrouill\u00e9.')),
     h('div',{className:'narrow',style:{borderTop:`1px solid ${T.line}`,paddingTop:14,
@@ -2128,7 +2129,7 @@ function App(){
           color:T.ink4,borderLeft:`2px solid ${T.hair}`,paddingLeft:10}},'Aucune saison active'));
 
   const content=h('div',{style:{flex:1,minWidth:0,minHeight:'100vh',background:T.cream}},
-    h('div',{style:{maxWidth:1080,padding:'40px 56px 80px'}},
+    h('div',{className:'content-wrapper',style:{maxWidth:1080}},
       !isUnlocked
         ? h(PwdGate,{onSuccess:()=>sUnlocked(p=>({...p,[mod]:true})),code:cur.code,
             label:cur.label,desc:cur.desc,num:cur.num+' \u2014 Module'})
@@ -2137,6 +2138,19 @@ function App(){
             :mod==='compta'?h(ComptaView,{sub,props:comptaProps})
             :h(RefView,{sub,props:refProps}))));
 
-  return h('div',{style:{display:'flex',minHeight:'100vh',background:T.cream}},sidebar,content);
+  return h('div',{style:{display:'flex',minHeight:'100vh',background:T.cream},className:'app-container'},
+    menuOpen && h('div',{className:'sidebar-backdrop',onClick:()=>sMenuOpen(false)}),
+    sidebar,
+    h('div',{style:{flex:1,display:'flex',flexDirection:'column'}},
+      h('div',{className:'mobile-header'},
+        h('div',{style:{display:'flex',alignItems:'center',gap:13}},
+          h('img',{src:LOGO_SRC,alt:'FDF',style:{width:32,height:'auto'}}),
+          h('div',{className:'disp',style:{fontSize:18,fontWeight:700,color:T.ink}},'PGI.FDF')
+        ),
+        h(Btn,{variant:'soft',size:'sm',onClick:()=>sMenuOpen(true)},'Menu')
+      ),
+      content
+    )
+  );
 }
 export default App;
