@@ -168,25 +168,44 @@ function ConfirmModal({show,title,message,confirmLabel,confirmVariant,onConfirm,
         h(Btn,{variant:confirmVariant||'dangerSolid',onClick:onConfirm},confirmLabel||'Confirmer'))));
 }
 
-/* ─── Porte mot de passe (éditoriale) ─── */
-function PwdGate({onSuccess,code,label,desc,num}){
-  const[pwd,sP]=useState('');const[err,sE]=useState(false);
-  const check=()=>{if(pwd===code)onSuccess();else{sE(true);sP('');setTimeout(()=>sE(false),2200);}};
-  return h('div',{style:{minHeight:'70vh',display:'flex',alignItems:'center',padding:'0 8px'}},
-    h('div',{style:{maxWidth:520}},
-      num&&h('div',{className:'narrow',style:{fontSize:13,color:T.green,letterSpacing:'0.3em',
-        fontWeight:600,marginBottom:18}},num),
-      h('h2',{className:'disp',style:{fontSize:'clamp(40px,6vw,68px)',fontWeight:500,color:T.ink,
-        lineHeight:0.98,letterSpacing:'-0.02em',marginBottom:20}},label),
-      h('p',{style:{fontSize:16,color:T.ink2,lineHeight:1.6,marginBottom:32,maxWidth:440}},desc),
-      h('div',{style:{display:'flex',gap:0,alignItems:'flex-end',maxWidth:360,marginBottom:err?10:24}},
-        h('input',{value:pwd,type:'password',placeholder:'Mot de passe',
-          onChange:e=>{sP(e.target.value);sE(false);},onKeyDown:e=>{if(e.key==='Enter')check();},
-          ...focusable(),
-          style:{...S.field,fontSize:22,letterSpacing:'0.2em',height:48,
-            borderBottomColor:err?T.red:T.ink,borderBottomWidth:'1.5px'}})),
-      err&&h('p',{style:{color:T.red,fontSize:13,marginBottom:18}},'Mot de passe incorrect.'),
-      h(Btn,{variant:'primary',size:'lg',onClick:check},'Déverrouiller le module')));
+/* ─── Portail de Connexion Unique ─── */
+function LoginPortal({onSuccess,arbitres}){
+  const[code,sC]=useState('');const[err,sE]=useState(false);
+  const handleLogin=()=>{
+    const trimmed=code.trim();if(!trimmed)return;
+    if(trimmed==='4321'){
+      onSuccess({role:'assign',label:'Assignation'});
+    }else if(trimmed==='1234'){
+      onSuccess({role:'compta',label:'Comptabilité'});
+    }else if(trimmed==='5678'){
+      onSuccess({role:'ref',label:'Arbitre'});
+    }else{
+      const arb=(arbitres||[]).find(x=>x.licence&&x.licence.toLowerCase()===trimmed.toLowerCase());
+      if(arb){
+        onSuccess({role:'ref',label:'Arbitre',refId:arb.id});
+      }else{
+        sE(true);sC('');setTimeout(()=>sE(false),2200);
+      }
+    }
+  };
+  return h('div',{style:{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:T.cream,padding:20}},
+    h('div',{style:{background:T.paper,border:`2px solid ${T.line}`,padding:'48px 40px',width:440,maxWidth:'100%',boxShadow:'0 10px 30px rgba(21,19,14,0.08)'}},
+      h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',marginBottom:32}},
+        h('img',{src:LOGO_SRC,alt:'FDF',style:{width:72,height:'auto',marginBottom:16}}),
+        h('h1',{className:'disp',style:{fontSize:32,fontWeight:700,color:T.ink,lineHeight:1,textAlign:'center'}},'PGI.FDF'),
+        h('p',{className:'narrow',style:{fontSize:11,color:T.green,letterSpacing:'0.18em',marginTop:6,fontWeight:700,textTransform:'uppercase'}},'Portail Fédéral de Connexion')
+      ),
+      h('div',{style:{marginBottom:24}},
+        h(Field,{label:"Code d'accès ou N° de Licence"},
+          h('input',{value:code,type:'password',placeholder:'Entrez votre code ou licence',
+            onChange:e=>{sC(e.target.value);sE(false);},onKeyDown:e=>{if(e.key==='Enter')handleLogin();},
+            ...focusable(),
+            style:{...S.field,fontSize:16,textAlign:'center',height:44,borderBottomColor:err?T.red:T.hair}}))
+      ),
+      err&&h('p',{style:{color:T.red,fontSize:13,textAlign:'center',marginBottom:18,fontWeight:500}},"Code d'accès ou N° de licence invalide."),
+      h(Btn,{variant:'primary',size:'lg',onClick:handleLogin,style:{width:'100%',display:'block'}},'Se connecter')
+    )
+  );
 }
 
 /* ─── Utilitaires ─── */
@@ -2078,10 +2097,27 @@ const NAV={
 };
 
 function App(){
+  const[user,setUser]=useLS('pgi3:currentUser',null);
   const[mod,sMod]=useState('assign');
   const[sub,sSub]=useState('clubs');
   const[menuOpen,sMenuOpen]=useState(false);
-  const[unlocked,sUnlocked]=useState({assign:false,compta:false,ref:false});
+  const unlocked={
+    assign:user?.role==='assign',
+    compta:user?.role==='compta',
+    ref:user?.role==='ref'
+  };
+  const handleLoginSuccess=(usr)=>{
+    setUser(usr);
+    sMod(usr.role);
+    sSub(NAV[usr.role].items[0].id);
+    if(usr.refId) setRefId(usr.refId);
+  };
+  const handleLogout=()=>{
+    setUser(null);
+    setRefId(null);
+    sMod('assign');
+    sSub('clubs');
+  };
   const[clubs,setClubs]=useLS('pgi3:clubs',[]);
   const[arbitres,setArbitres]=useLS('pgi3:arbitres',[]);
   const[competitions,setCompetitions]=useLS('pgi3:competitions',[]);
@@ -2100,7 +2136,7 @@ function App(){
   const assignProps={clubs,setClubs,arbitres,setArbitres,competitions,setCompetitions,matchs,setMatchs,saisons,setSaisons,taux,setTaux,divisions,setDivisions};
   const comptaProps={saisons,setSaisons,taux,setTaux,sanctions,setSanctions,feuilles,setFeuilles,presences,setPresences,sancApp,setSancApp,competitions,matchs,clubs,divisions,rapports};
   const actS=saisons.find(s=>s.statut==='Active');
-  const refProps={arbitres,matchs,feuilles,presences,sancApp,taux,saisons,refId,setRefId,refConfirmations,setRefConfirmations,rapports,setRapports,actS};
+  const refProps={arbitres,matchs,feuilles,presences,sancApp,taux,saisons,refId:user?.refId||refId,setRefId:user?.refId?()=>{}:setRefId,refConfirmations,setRefConfirmations,rapports,setRapports,actS};
   const loadDemo=()=>{
     const d=applyDemoData();
     setClubs(d.clubs);setArbitres(d.arbitres);setSaisons(d.saisons);setDivisions(d.divisions);
@@ -2141,8 +2177,8 @@ function App(){
       borderBottom:`1px solid ${T.line}`}},'Assignation et suivi de paiement'),
     /* Modules */
     h('div',{style:{marginBottom:24}},
-      ...Object.entries(NAV).map(([k,v])=>{
-        const on=mod===k;const lock=!unlocked[k];
+      ...Object.entries(NAV).filter(([k])=>k===user?.role).map(([k,v])=>{
+        const on=mod===k;
         return h('button',{key:k,onClick:()=>{switchMod(k);sMenuOpen(false);},
           style:{display:'flex',alignItems:'baseline',gap:12,width:'100%',textAlign:'left',
             background:'transparent',border:'none',padding:'8px 0',cursor:'pointer'}},
@@ -2150,18 +2186,16 @@ function App(){
             color:on?T.green:T.ink4,width:20,flexShrink:0}},v.num),
           h('span',{className:'disp',style:{fontSize:16,fontWeight:on?700:500,
             color:on?T.ink:T.ink3,fontFamily:"'Oswald',sans-serif"}},
-            v.label,lock&&h('span',{className:'narrow',style:{marginLeft:8,fontSize:9,color:T.ink4,
-              letterSpacing:'0.1em',textTransform:'none',fontWeight:500}},'verrouill\u00e9')));
+            v.label));
       })),
     h('div',{style:{borderTop:`1px solid ${T.line}`,marginBottom:16}}),
+    h('div',{style:{marginBottom:16}},
+      h(Btn,{variant:'soft',size:'sm',onClick:handleLogout,style:{width:'100%',color:T.red,borderColor:T.red}},'Déconnexion')),
     h('div',{style:{flex:1,overflowY:'auto'}},
-      isUnlocked
-        ? h('div',null,
-            h('div',{className:'narrow',style:{fontSize:10,color:T.ink4,letterSpacing:'0.18em',
-              textTransform:'uppercase',marginBottom:4}},'Sections'),
-            ...cur.items.map(it=>h(NavLine,{key:it.id,it,onClick:()=>sMenuOpen(false)})))
-        : h('p',{className:'narrow',style:{fontSize:12,color:T.ink4,lineHeight:1.7,
-            textTransform:'uppercase',letterSpacing:'0.06em'}},'Module verrouill\u00e9.')),
+      h('div',null,
+        h('div',{className:'narrow',style:{fontSize:10,color:T.ink4,letterSpacing:'0.18em',
+          textTransform:'uppercase',marginBottom:4}},'Sections'),
+        ...cur.items.map(it=>h(NavLine,{key:it.id,it,onClick:()=>sMenuOpen(false)})))),
     h('div',{className:'narrow',style:{borderTop:`1px solid ${T.line}`,paddingTop:14,
       fontSize:10,color:T.ink4,letterSpacing:'0.08em',lineHeight:1.7}},
       'ANAS MOUD',h('br'),'PROJET FDF \u2014 V0.3',
@@ -2171,7 +2205,7 @@ function App(){
           textTransform:'uppercase',fontFamily:"'Archivo Narrow',sans-serif",width:'100%'}},
           'Recharger donn\u00e9es d\u00e9mo'))));
 
-  const curItem=isUnlocked?cur.items.find(i=>i.id===sub):null;
+  const curItem=cur.items.find(i=>i.id===sub)||null;
   const header=h('div',{style:{display:'flex',alignItems:'baseline',justifyContent:'space-between',
     gap:20,marginBottom:34,flexWrap:'wrap'}},
     h('span',{className:'narrow disp',style:{fontSize:13,color:T.ink3,letterSpacing:'0.16em'}},
@@ -2184,13 +2218,14 @@ function App(){
 
   const content=h('div',{style:{flex:1,minWidth:0,minHeight:'100vh',background:T.cream}},
     h('div',{className:'content-wrapper',style:{maxWidth:1080}},
-      !isUnlocked
-        ? h(PwdGate,{onSuccess:()=>sUnlocked(p=>({...p,[mod]:true})),code:cur.code,
-            label:cur.label,desc:cur.desc,num:cur.num+' \u2014 Module'})
-        : h('div',null,header,
-            mod==='assign'?h(AssignView,{sub,props:assignProps})
-            :mod==='compta'?h(ComptaView,{sub,props:comptaProps})
-            :h(RefView,{sub,props:refProps}))));
+      h('div',null,header,
+        mod==='assign'?h(AssignView,{sub,props:assignProps})
+        :mod==='compta'?h(ComptaView,{sub,props:comptaProps})
+        :h(RefView,{sub,props:refProps}))));
+
+  if(!user){
+    return h(LoginPortal,{onSuccess:handleLoginSuccess,arbitres});
+  }
 
   return h('div',{style:{display:'flex',minHeight:'100vh',background:T.cream},className:'app-container'},
     menuOpen && h('div',{className:'sidebar-backdrop',onClick:()=>sMenuOpen(false)}),
