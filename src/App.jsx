@@ -2393,7 +2393,7 @@ function App(){
         ...cur.items.filter(it=>!(it.id==='identite'&&user?.refId)).map(it=>h(NavLine,{key:it.id,it,onClick:()=>sMenuOpen(false)})))),
     h('div',{className:'narrow',style:{borderTop:`1px solid ${T.line}`,paddingTop:14,
       fontSize:10,color:T.ink4,letterSpacing:'0.08em',lineHeight:1.7}},
-      'ANAS MOUD',h('br'),'PROJET FDF \u2014 V0.3')));
+      'ANAS MOUD',h('br'),'PROJET FDF \u2014 V0.3'));
 
 
   const curItem=cur.items.find(i=>i.id===sub)||null;
