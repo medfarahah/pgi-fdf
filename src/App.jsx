@@ -1,5 +1,46 @@
-import { useState, useEffect, useMemo, createElement as h } from 'react';
+import { useState, useEffect, useMemo, useRef, createElement as h } from 'react';
 import { applyDemoData } from './demoData.js';
+
+/* ─── Hook PWA Install ─────────────────────────────────────────────────────── */
+function usePWAInstall() {
+  const [installable, setInstallable] = useState(false);
+  const [installed, setInstalled]     = useState(false);
+  const deferredPrompt                = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault();
+      deferredPrompt.current = e;
+      setInstallable(true);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+
+    window.addEventListener('appinstalled', () => {
+      setInstalled(true);
+      setInstallable(false);
+      deferredPrompt.current = null;
+    });
+
+    // Already installed (standalone mode)
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setInstalled(true);
+    }
+
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const promptInstall = async () => {
+    if (!deferredPrompt.current) return;
+    deferredPrompt.current.prompt();
+    const { outcome } = await deferredPrompt.current.userChoice;
+    if (outcome === 'accepted') {
+      setInstallable(false);
+      deferredPrompt.current = null;
+    }
+  };
+
+  return { installable, installed, promptInstall };
+}
 
 const printReport = (e) => {
   let parent = e.currentTarget.parentElement;
@@ -2216,6 +2257,8 @@ function App(){
   const[mod,sMod]=useState('assign');
   const[sub,sSub]=useState('clubs');
   const[menuOpen,sMenuOpen]=useState(false);
+  const { installable, installed, promptInstall } = usePWAInstall();
+  const[installHv,sInstallHv]=useState(false);
   const unlocked={
     assign:user?.role==='assign',
     compta:user?.role==='compta',
@@ -2318,7 +2361,38 @@ function App(){
     h('div',{className:'narrow',style:{borderTop:`1px solid ${T.line}`,paddingTop:14,
       fontSize:10,color:T.ink4,letterSpacing:'0.08em',lineHeight:1.7}},
       'ANAS MOUD',h('br'),'PROJET FDF \u2014 V0.3',
-      h('div',{style:{marginTop:12}},
+      /* ── Bouton Installer l'application ── */
+      !installed && installable && h('div',{style:{marginTop:10}},
+        h('button',{
+          onClick:promptInstall,
+          onMouseEnter:()=>sInstallHv(true),
+          onMouseLeave:()=>sInstallHv(false),
+          style:{
+            display:'flex',alignItems:'center',justifyContent:'center',gap:7,width:'100%',
+            background:installHv?T.green:'transparent',
+            border:`1.5px solid ${T.green}`,
+            color:installHv?T.cream:T.green,
+            fontSize:10.5,padding:'8px 10px',cursor:'pointer',
+            letterSpacing:'0.12em',textTransform:'uppercase',
+            fontFamily:"'Archivo',sans-serif",fontWeight:700,
+            transition:'all .15s',borderRadius:0,
+          }},
+          /* Download arrow icon */
+          h('svg',{xmlns:'http://www.w3.org/2000/svg',width:13,height:13,viewBox:'0 0 24 24',
+            fill:'none',stroke:'currentColor',strokeWidth:2.2,strokeLinecap:'round',strokeLinejoin:'round'},
+            h('path',{d:'M12 3v13'}),
+            h('path',{d:'M5 14l7 7 7-7'}),
+            h('path',{d:'M3 21h18'})),
+          'Installer l\u2019app')),
+      installed && h('div',{style:{marginTop:10,
+        display:'flex',alignItems:'center',gap:6,
+        color:T.green,fontSize:10,letterSpacing:'0.1em',textTransform:'uppercase',
+        fontFamily:"'Archivo Narrow',sans-serif",fontWeight:600}},
+        h('svg',{xmlns:'http://www.w3.org/2000/svg',width:12,height:12,viewBox:'0 0 24 24',
+          fill:'none',stroke:'currentColor',strokeWidth:2.5,strokeLinecap:'round',strokeLinejoin:'round'},
+          h('polyline',{points:'20 6 9 17 4 12'})),
+        'Application install\u00e9e'),
+      h('div',{style:{marginTop:10}},
         h('button',{onClick:loadDemo,style:{background:'transparent',border:`1px solid ${T.hair}`,
           color:T.ink3,fontSize:10,padding:'6px 10px',cursor:'pointer',letterSpacing:'0.1em',
           textTransform:'uppercase',fontFamily:"'Archivo Narrow',sans-serif",width:'100%'}},
