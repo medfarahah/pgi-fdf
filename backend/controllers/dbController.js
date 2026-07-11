@@ -18,25 +18,7 @@ const entities = [
 ];
 
 async function ensureSeed() {
-  const count = await DbService.count('club');
-  if (count === 0) {
-    console.log("Database is empty. Seeding demo data on Neon Postgres...");
-    const demo = getDemoData();
-    await DbService.bulkSync('club', demo.clubs);
-    await DbService.bulkSync('arbitre', demo.arbitres);
-    await DbService.bulkSync('saison', demo.saisons);
-    await DbService.bulkSync('division', demo.divisions);
-    await DbService.bulkSync('competition', demo.competitions);
-    await DbService.bulkSync('taux', demo.taux);
-    await DbService.bulkSync('sanction', demo.sanctions);
-    await DbService.bulkSync('match', demo.matchs);
-    await DbService.bulkSync('feuilleMatch', demo.feuilles);
-    await DbService.bulkSync('presenceArbitre', demo.presences);
-    await DbService.bulkSync('sanctionAppliquee', demo.sancApp);
-    await DbService.bulkSync('confirmationPresence', demo.refConfirmations);
-    await DbService.bulkSync('rapportArbitre', demo.rapports);
-    console.log("Neon seeding complete!");
-  }
+  // Seeding disabled to use real database data
 }
 
 export class DbController {

@@ -2393,12 +2393,7 @@ function App(){
         ...cur.items.filter(it=>!(it.id==='identite'&&user?.refId)).map(it=>h(NavLine,{key:it.id,it,onClick:()=>sMenuOpen(false)})))),
     h('div',{className:'narrow',style:{borderTop:`1px solid ${T.line}`,paddingTop:14,
       fontSize:10,color:T.ink4,letterSpacing:'0.08em',lineHeight:1.7}},
-      'ANAS MOUD',h('br'),'PROJET FDF \u2014 V0.3',
-      h('div',{style:{marginTop:10}},
-        h('button',{onClick:loadDemo,style:{background:'transparent',border:`1px solid ${T.hair}`,
-          color:T.ink3,fontSize:10,padding:'6px 10px',cursor:'pointer',letterSpacing:'0.1em',
-          textTransform:'uppercase',fontFamily:"'Archivo Narrow',sans-serif",width:'100%'}},
-          'Recharger donn\u00e9es d\u00e9mo'))));
+      'ANAS MOUD',h('br'),'PROJET FDF \u2014 V0.3')));
 
 
   const curItem=cur.items.find(i=>i.id===sub)||null;
