@@ -2352,7 +2352,40 @@ function App(){
       })),
     h('div',{style:{borderTop:`1px solid ${T.line}`,marginBottom:16}}),
     h('div',{style:{marginBottom:16}},
-      h(Btn,{variant:'soft',size:'sm',onClick:handleLogout,style:{width:'100%',color:T.red,borderColor:T.red}},'Déconnexion')),
+      h(Btn,{variant:'soft',size:'sm',onClick:handleLogout,style:{width:'100%',color:T.red,borderColor:T.red}},'D\u00e9connexion')),
+    /* ── PWA Install — visible for every user type ── */
+    (installable&&!installed)&&h('div',{style:{marginBottom:14}},
+      h('button',{
+        onClick:promptInstall,
+        onMouseEnter:()=>sInstallHv(true),
+        onMouseLeave:()=>sInstallHv(false),
+        style:{
+          display:'flex',alignItems:'center',justifyContent:'center',gap:7,width:'100%',
+          background:installHv?T.green:'transparent',
+          border:`1.5px solid ${T.green}`,
+          color:installHv?T.cream:T.green,
+          fontSize:10.5,padding:'9px 10px',cursor:'pointer',
+          letterSpacing:'0.12em',textTransform:'uppercase',
+          fontFamily:"'Archivo',sans-serif",fontWeight:700,
+          transition:'all .15s',borderRadius:0,
+        }},
+        h('svg',{xmlns:'http://www.w3.org/2000/svg',width:13,height:13,viewBox:'0 0 24 24',
+          fill:'none',stroke:'currentColor',strokeWidth:2.2,
+          strokeLinecap:'round',strokeLinejoin:'round'},
+          h('path',{d:'M12 3v13'}),
+          h('path',{d:'M5 14l7 7 7-7'}),
+          h('path',{d:'M3 21h18'})),
+        'Installer l\u2019app')),
+    installed&&h('div',{style:{marginBottom:14,
+      display:'flex',alignItems:'center',justifyContent:'center',gap:6,
+      background:T.greenL,border:`1px solid ${T.green}`,padding:'8px 10px',
+      color:T.greenInk,fontSize:10,letterSpacing:'0.1em',textTransform:'uppercase',
+      fontFamily:"'Archivo Narrow',sans-serif",fontWeight:700}},
+      h('svg',{xmlns:'http://www.w3.org/2000/svg',width:12,height:12,viewBox:'0 0 24 24',
+        fill:'none',stroke:'currentColor',strokeWidth:2.5,
+        strokeLinecap:'round',strokeLinejoin:'round'},
+        h('polyline',{points:'20 6 9 17 4 12'})),
+      'Application install\u00e9e'),
     h('div',{style:{flex:1,overflowY:'auto'}},
       h('div',null,
         h('div',{className:'narrow',style:{fontSize:10,color:T.ink4,letterSpacing:'0.18em',
@@ -2361,42 +2394,12 @@ function App(){
     h('div',{className:'narrow',style:{borderTop:`1px solid ${T.line}`,paddingTop:14,
       fontSize:10,color:T.ink4,letterSpacing:'0.08em',lineHeight:1.7}},
       'ANAS MOUD',h('br'),'PROJET FDF \u2014 V0.3',
-      /* ── Bouton Installer l'application ── */
-      !installed && installable && h('div',{style:{marginTop:10}},
-        h('button',{
-          onClick:promptInstall,
-          onMouseEnter:()=>sInstallHv(true),
-          onMouseLeave:()=>sInstallHv(false),
-          style:{
-            display:'flex',alignItems:'center',justifyContent:'center',gap:7,width:'100%',
-            background:installHv?T.green:'transparent',
-            border:`1.5px solid ${T.green}`,
-            color:installHv?T.cream:T.green,
-            fontSize:10.5,padding:'8px 10px',cursor:'pointer',
-            letterSpacing:'0.12em',textTransform:'uppercase',
-            fontFamily:"'Archivo',sans-serif",fontWeight:700,
-            transition:'all .15s',borderRadius:0,
-          }},
-          /* Download arrow icon */
-          h('svg',{xmlns:'http://www.w3.org/2000/svg',width:13,height:13,viewBox:'0 0 24 24',
-            fill:'none',stroke:'currentColor',strokeWidth:2.2,strokeLinecap:'round',strokeLinejoin:'round'},
-            h('path',{d:'M12 3v13'}),
-            h('path',{d:'M5 14l7 7 7-7'}),
-            h('path',{d:'M3 21h18'})),
-          'Installer l\u2019app')),
-      installed && h('div',{style:{marginTop:10,
-        display:'flex',alignItems:'center',gap:6,
-        color:T.green,fontSize:10,letterSpacing:'0.1em',textTransform:'uppercase',
-        fontFamily:"'Archivo Narrow',sans-serif",fontWeight:600}},
-        h('svg',{xmlns:'http://www.w3.org/2000/svg',width:12,height:12,viewBox:'0 0 24 24',
-          fill:'none',stroke:'currentColor',strokeWidth:2.5,strokeLinecap:'round',strokeLinejoin:'round'},
-          h('polyline',{points:'20 6 9 17 4 12'})),
-        'Application install\u00e9e'),
       h('div',{style:{marginTop:10}},
         h('button',{onClick:loadDemo,style:{background:'transparent',border:`1px solid ${T.hair}`,
           color:T.ink3,fontSize:10,padding:'6px 10px',cursor:'pointer',letterSpacing:'0.1em',
           textTransform:'uppercase',fontFamily:"'Archivo Narrow',sans-serif",width:'100%'}},
           'Recharger donn\u00e9es d\u00e9mo'))));
+
 
   const curItem=cur.items.find(i=>i.id===sub)||null;
   const header=h('div',{style:{display:'flex',alignItems:'baseline',justifyContent:'space-between',
@@ -2429,7 +2432,36 @@ function App(){
           h('img',{src:LOGO_SRC,alt:'FDF',style:{width:32,height:'auto'}}),
           h('div',{className:'disp',style:{fontSize:18,fontWeight:700,color:T.ink}},'PGI.FDF')
         ),
-        h(Btn,{variant:'soft',size:'sm',onClick:()=>sMenuOpen(true)},'Menu')
+        h('div',{style:{display:'flex',alignItems:'center',gap:8}},
+          /* PWA install button — mobile */
+          installable && !installed && h('button',{
+            onClick:promptInstall,
+            title:'Installer l\'application',
+            style:{
+              display:'flex',alignItems:'center',gap:5,
+              background:'transparent',border:`1.5px solid ${T.green}`,
+              color:T.green,fontSize:10,padding:'6px 10px',cursor:'pointer',
+              letterSpacing:'0.1em',textTransform:'uppercase',
+              fontFamily:"'Archivo',sans-serif",fontWeight:700,
+              borderRadius:0,transition:'all .15s',whiteSpace:'nowrap',
+            }},
+            h('svg',{xmlns:'http://www.w3.org/2000/svg',width:12,height:12,viewBox:'0 0 24 24',
+              fill:'none',stroke:'currentColor',strokeWidth:2.2,strokeLinecap:'round',strokeLinejoin:'round'},
+              h('path',{d:'M12 3v13'}),
+              h('path',{d:'M5 14l7 7 7-7'}),
+              h('path',{d:'M3 21h18'})),
+            'Installer'),
+          installed && h('div',{
+            title:'Application installée',
+            style:{display:'flex',alignItems:'center',gap:4,color:T.green,
+              fontSize:10,fontWeight:700,letterSpacing:'0.1em',textTransform:'uppercase',
+              fontFamily:"'Archivo Narrow',sans-serif"}},
+            h('svg',{xmlns:'http://www.w3.org/2000/svg',width:12,height:12,viewBox:'0 0 24 24',
+              fill:'none',stroke:'currentColor',strokeWidth:2.5,strokeLinecap:'round',strokeLinejoin:'round'},
+              h('polyline',{points:'20 6 9 17 4 12'})),
+            'Installé'),
+          h(Btn,{variant:'soft',size:'sm',onClick:()=>sMenuOpen(true)},'Menu')
+        )
       ),
       content
     )
