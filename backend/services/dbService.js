@@ -45,17 +45,79 @@ export class DbService {
         }
       });
 
+      // If syncing arbitres, also delete the associated users
+      if (entity === 'arbitre') {
+        await tx.user.deleteMany({
+          where: {
+            role: 'ref',
+            refId: {
+              notIn: ids
+            }
+          }
+        });
+      }
+
       // Upsert items
       for (const item of items) {
         const { id, ...data } = item;
+        let savedItem;
         if (id === undefined || id === null) {
-          await tx[entity].create({ data });
+          savedItem = await tx[entity].create({ data });
         } else {
-          await tx[entity].upsert({
+          savedItem = await tx[entity].upsert({
             where: { id },
             update: data,
             create: { id, ...data }
           });
+        }
+
+        // If syncing arbitres, automatically create/update the User profile
+        if (entity === 'arbitre') {
+          const arbId = savedItem.id;
+          const email = savedItem.email && savedItem.email.trim()
+            ? savedItem.email.trim().toLowerCase()
+            : `ref_${arbId}@fdf.dj`;
+          const code = savedItem.licence && savedItem.licence.trim()
+            ? savedItem.licence.trim()
+            : '5678';
+          const name = `${savedItem.prenom || ''} ${savedItem.nom || ''}`.trim() || 'Arbitre';
+
+          // Check if user already exists for this arbitre
+          const existingUser = await tx.user.findFirst({
+            where: {
+              role: 'ref',
+              refId: arbId
+            }
+          });
+
+          if (existingUser) {
+            // Update user details to sync with Arbitre changes
+            await tx.user.update({
+              where: { id: existingUser.id },
+              data: {
+                email,
+                name,
+                code
+              }
+            });
+          } else {
+            // Check if this email is already taken by another user to avoid unique constraints
+            const emailTaken = await tx.user.findUnique({
+              where: { email }
+            });
+            const finalEmail = emailTaken ? `ref_${arbId}_${Date.now()}@fdf.dj` : email;
+
+            // Create new User
+            await tx.user.create({
+              data: {
+                email: finalEmail,
+                name,
+                code,
+                role: 'ref',
+                refId: arbId
+              }
+            });
+          }
         }
       }
     });
