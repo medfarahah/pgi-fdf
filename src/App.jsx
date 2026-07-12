@@ -2277,7 +2277,12 @@ function RefProfilTab({arbitre,matchs,feuilles,presences,sancApp,taux}){
 function RefView({sub,props}){
   const{arbitres,matchs,feuilles,presences,sancApp,taux,saisons,refId,setRefId,refConfirmations,setRefConfirmations,rapports,setRapports,actS}=props;
   const arbitre=arbitres.find(a=>a.id===refId)||null;
-  if(sub==='identite')return h(RefIdentiteTab,{arbitres,refId,setRefId});
+  if(sub==='identite'){
+    if (refId) {
+      return h(RefProfilTab,{arbitre,matchs,feuilles,presences,sancApp,taux});
+    }
+    return h(RefIdentiteTab,{arbitres,refId,setRefId});
+  }
   if(sub==='designations')return h(RefDesignationsTab,{arbitre,matchs,feuilles,refConfirmations,setRefConfirmations,actS});
   if(sub==='rapports')return h(RefRapportsTab,{arbitre,matchs,feuilles,rapports,setRapports,actS,saisons});
   if(sub==='historique')return h(RefHistoriqueTab,{arbitre,feuilles,presences,matchs,sancApp,taux});
