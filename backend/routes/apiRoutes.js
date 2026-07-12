@@ -6,6 +6,9 @@ const router = express.Router();
 // Bootstrap endpoint
 router.get('/bootstrap', DbController.bootstrap);
 
+// Login endpoint
+router.post('/login', DbController.login);
+
 // Granular and bulk routes for all entities
 entities.forEach(ent => {
   // Sync arrays in bulk (used by the react app hook useLS)

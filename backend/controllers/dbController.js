@@ -1,5 +1,6 @@
 import { DbService } from '../services/dbService.js';
 import { getDemoData } from '../../src/demoData.js';
+import { prisma } from '../config/db.js';
 
 const entities = [
   { name: 'club', path: 'clubs' },
@@ -14,11 +15,42 @@ const entities = [
   { name: 'presenceArbitre', path: 'presences' },
   { name: 'sanctionAppliquee', path: 'sancapp' },
   { name: 'confirmationPresence', path: 'refconfirmations' },
-  { name: 'rapportArbitre', path: 'rapports' }
+  { name: 'rapportArbitre', path: 'rapports' },
+  { name: 'user', path: 'users' }
 ];
 
 async function ensureSeed() {
-  // Seeding disabled to use real database data
+  try {
+    const userCount = await prisma.user.count();
+    if (userCount === 0) {
+      await prisma.user.createMany({
+        data: [
+          {
+            email: 'assign@fdf.dj',
+            name: 'Responsable Assignation',
+            code: '4321',
+            role: 'assign'
+          },
+          {
+            email: 'compta@fdf.dj',
+            name: 'Responsable Comptabilité',
+            code: '1234',
+            role: 'compta'
+          },
+          {
+            email: 'ahmed.hassan@fdf.dj',
+            name: 'Ahmed Hassan',
+            code: '5678',
+            role: 'ref',
+            refId: 1
+          }
+        ]
+      });
+      console.log('Default users seeded successfully.');
+    }
+  } catch (err) {
+    console.error('Error seeding default users:', err);
+  }
 }
 
 export class DbController {
@@ -108,6 +140,59 @@ export class DbController {
         next(err);
       }
     };
+  }
+
+  static async login(req, res, next) {
+    try {
+      const { code } = req.body;
+      if (!code) {
+        return res.status(400).json({ error: "Code d'accès ou N° de licence requis" });
+      }
+
+      const trimmedCode = code.trim();
+
+      // 1. Try to find a user by their direct code (e.g. for assign/compta or custom code)
+      let user = await prisma.user.findFirst({
+        where: {
+          code: trimmedCode
+        }
+      });
+
+      // 2. If not found by code, check if it's an arbitre licence number
+      if (!user) {
+        const arbitre = await prisma.arbitre.findFirst({
+          where: {
+            licence: {
+              equals: trimmedCode,
+              mode: 'insensitive'
+            }
+          }
+        });
+
+        if (arbitre) {
+          user = await prisma.user.findFirst({
+            where: {
+              role: 'ref',
+              refId: arbitre.id
+            }
+          });
+        }
+      }
+
+      if (!user) {
+        return res.status(401).json({ error: "Code d'accès ou N° de licence incorrect" });
+      }
+
+      res.json({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        refId: user.refId
+      });
+    } catch (err) {
+      next(err);
+    }
   }
 }
 export { entities };

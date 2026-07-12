@@ -210,23 +210,45 @@ function ConfirmModal({show,title,message,confirmLabel,confirmVariant,onConfirm,
 }
 
 /* ─── Portail de Connexion Unique ─── */
-function LoginPortal({onSuccess,arbitres}){
-  const[code,sC]=useState('');const[err,sE]=useState(false);
+function LoginPortal({onSuccess}){
+  const[code,sCode]=useState('');
+  const[err,sE]=useState(false);
+  const[loading,sL]=useState(false);
+
   const handleLogin=()=>{
-    const trimmed=code.trim();if(!trimmed)return;
-    if(trimmed==='4321'){
-      onSuccess({role:'assign',label:'Assignation'});
-    }else if(trimmed==='1234'){
-      onSuccess({role:'compta',label:'Comptabilité'});
-    }else{
-      const arb=(arbitres||[]).find(x=>x.licence&&x.licence.toLowerCase()===trimmed.toLowerCase());
-      if(arb){
-        onSuccess({role:'ref',label:'Arbitre',refId:arb.id});
-      }else{
-        sE(true);sC('');setTimeout(()=>sE(false),2200);
-      }
-    }
+    const trimmedCode=code.trim();
+    if(!trimmedCode) return;
+
+    sL(true);
+    fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: trimmedCode })
+    })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error('Identifiants invalides');
+        }
+        return res.json();
+      })
+      .then(data => {
+        sL(false);
+        onSuccess({
+          role: data.role,
+          label: data.role === 'assign' ? 'Assignation' : data.role === 'compta' ? 'Comptabilité' : 'Arbitre',
+          refId: data.refId,
+          email: data.email,
+          name: data.name
+        });
+      })
+      .catch(err => {
+        sL(false);
+        sE(true);
+        sCode('');
+        setTimeout(() => sE(false), 2400);
+      });
   };
+
   return h('div',{style:{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:T.cream,padding:20}},
     h('div',{style:{background:T.paper,border:`2px solid ${T.line}`,padding:'48px 40px',width:440,maxWidth:'100%',boxShadow:'0 10px 30px rgba(21,19,14,0.08)'}},
       h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',marginBottom:32}},
@@ -234,15 +256,15 @@ function LoginPortal({onSuccess,arbitres}){
         h('h1',{className:'disp',style:{fontSize:32,fontWeight:700,color:T.ink,lineHeight:1,textAlign:'center'}},'PGI.FDF'),
         h('p',{className:'narrow',style:{fontSize:11,color:T.green,letterSpacing:'0.18em',marginTop:6,fontWeight:700,textTransform:'uppercase'}},'Portail Fédéral de Connexion')
       ),
-      h('div',{style:{marginBottom:24}},
-        h(Field,{label:"Code d'accès ou N° de Licence"},
+      h('div',{style:{marginBottom:28}},
+        h(Field,{label:"Code d'accès ou N° de Licence *"},
           h('input',{value:code,type:'password',placeholder:'Entrez votre code ou licence',
-            onChange:e=>{sC(e.target.value);sE(false);},onKeyDown:e=>{if(e.key==='Enter')handleLogin();},
+            onChange:e=>{sCode(e.target.value);sE(false);},onKeyDown:e=>{if(e.key==='Enter')handleLogin();},
             ...focusable(),
-            style:{...S.field,fontSize:16,textAlign:'center',height:44,borderBottomColor:err?T.red:T.hair}}))
+            style:{...S.field,fontSize:15,textAlign:'center',height:44,borderBottomColor:err?T.red:T.hair}}))
       ),
-      err&&h('p',{style:{color:T.red,fontSize:13,textAlign:'center',marginBottom:18,fontWeight:500}},"Code d'accès ou N° de licence invalide."),
-      h(Btn,{variant:'primary',size:'lg',onClick:handleLogin,style:{width:'100%',display:'block'}},'Se connecter')
+      err&&h('p',{style:{color:T.red,fontSize:13,textAlign:'center',marginBottom:18,fontWeight:500}},"Code d'accès ou N° de licence incorrect."),
+      h(Btn,{variant:'primary',size:'lg',onClick:handleLogin,disabled:loading,style:{width:'100%',display:'block'}},loading?'Connexion...':'Se connecter')
     )
   );
 }
@@ -265,6 +287,7 @@ function useLS(key,init){
     if (key === 'pgi3:sancapp') return '/api/sancapp';
     if (key === 'pgi3:refConfirm') return '/api/refconfirmations';
     if (key === 'pgi3:rapports') return '/api/rapports';
+    if (key === 'pgi3:users') return '/api/users';
     return null;
   }, [key]);
 
@@ -491,6 +514,71 @@ function ArbitresTab({arbitres,setArbitres}){
           h('td',{style:{...ST.td,textAlign:'right'}},h('div',{style:{display:'flex',gap:8,justifyContent:'flex-end'}},
             h(Btn,{variant:'soft',size:'sm',onClick:()=>edit(a)},'Modifier'),
             h(Btn,{variant:'ghost',size:'sm',onClick:()=>setArbitres(p=>p.filter(x=>x.id!==a.id))},'Supprimer')))))))))
+  );
+}
+
+const eUser=()=>({id:0,email:'',name:'',code:'1234',role:'ref',refId:''});
+function UsersTab({users,setUsers,arbitres}){
+  const[f,sF]=useState(eUser());const[n,sN]=useState(null);const[editId,sEdit]=useState(null);
+  const ch=k=>e=>sF(p=>({...p,[k]:e.target.value}));
+  const save=()=>{
+    if(!f.email.trim()){sN({msg:'L\'email est obligatoire.',tone:'err'});return;}
+    if(!f.code.trim()){sN({msg:'Le code d\'accès est obligatoire.',tone:'err'});return;}
+    if(!f.role){sN({msg:'Le rôle est obligatoire.',tone:'err'});return;}
+    
+    const parsedRefId = f.role === 'ref' && f.refId ? Number(f.refId) : null;
+    const finalData = { ...f, refId: parsedRefId };
+
+    if(editId){
+      setUsers(p=>p.map(u=>u.id===editId?{...finalData,id:editId}:u));
+      sN({msg:`Utilisateur « ${f.name || f.email} » modifié.`,tone:'ok'});
+      sEdit(null);
+    }
+    else{
+      setUsers(p=>[...p,{...finalData,id:nid(p)}]);
+      sN({msg:`Utilisateur « ${f.name || f.email} » enregistré.`,tone:'ok'});
+    }
+    sF(eUser());
+  };
+  const edit=u=>{sF({...u, refId: u.refId || ''});sEdit(u.id);sN(null);window.scrollTo({top:0,behavior:'smooth'});};
+  const cancel=()=>{sF(eUser());sEdit(null);sN(null);};
+
+  return h(Section,null,
+    h(Notice,{msg:n?.msg,tone:n?.tone,onClose:()=>sN(null)}),
+    h(Card,null,
+      h(CardHead,{title:editId?'Modifier l\'utilisateur':'Enregistrement d\'un utilisateur',sub:'Tous les champs marqués d\'un astérisque sont requis.'}),
+      h('div',{style:ST.body},
+        h('div',{className:'grid-mobile-1',style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:18}},
+          h(Field,{label:'Email *'},h(Inp,{value:f.email,onChange:ch('email'),type:'email',placeholder:'Ex: arbitre@fdf.dj'})),
+          h(Field,{label:'Nom complet'},h(Inp,{value:f.name,onChange:ch('name'),placeholder:'Ex: Ahmed Hassan'})),
+          h(Field,{label:'Code d\'accès *'},h(Inp,{value:f.code,onChange:ch('code'),type:'text',placeholder:'Code de connexion'})),
+          h(Field,{label:'Rôle *'},h(Sel,{value:f.role,onChange:ch('role')},
+            h('option',{value:'ref'},'Arbitre'),
+            h('option',{value:'assign'},'Assignation'),
+            h('option',{value:'compta'},'Comptabilité'))),
+          f.role === 'ref' && h(Field,{label:'Arbitre associé'},h(Sel,{value:f.refId,onChange:ch('refId')},
+            h('option',{value:''},'— Aucun arbitre —'),
+            ...arbitres.map(a => h('option',{key:a.id,value:a.id},`${a.nom} ${a.prenom} (${a.licence || 'Sans licence'})`))
+          ))
+        )
+      ),
+      h('div',{style:{padding:'18px 0 0',display:'flex',gap:10}},
+        h(Btn,{variant:'primary',onClick:save},editId?'Enregistrer les modifications':'Enregistrer l\'utilisateur'),
+        h(Btn,{variant:'ghost',onClick:cancel},editId?'Annuler':'Réinitialiser'))),
+    h(Card,null,
+      h(CardHead,{title:`Utilisateurs enregistrés`,sub:`${users.length} utilisateur(s) au total`}),
+      users.length===0?h('div',{style:ST.empty},'Aucun utilisateur enregistré pour le moment.'):
+      h('div',{style:{overflowX:'auto'}},h('table',{style:ST.table},
+        h('thead',null,h('tr',null,['Nom','Email','Rôle','Code','Arbitre',''].map(x=>h('th',{key:x,style:ST.th},x)))),
+        h('tbody',null,...users.map((u,i)=>h('tr',{key:u.id},
+          h('td',{style:{...ST.td,fontWeight:600,color:C.ink}},u.name||'\u2014'),
+          h('td',{style:ST.td},u.email),
+          h('td',{style:ST.td},u.role === 'assign' ? 'Assignation' : u.role === 'compta' ? 'Comptabilité' : 'Arbitre'),
+          h('td',{style:ST.td},u.code),
+          h('td',{style:ST.td},u.role === 'ref' && u.refId ? (arbitres.find(x => x.id === u.refId) ? `${arbitres.find(x => x.id === u.refId).nom} ${arbitres.find(x => x.id === u.refId).prenom}` : 'Arbitre inconnu') : '\u2014'),
+          h('td',{style:{...ST.td,textAlign:'right'}},h('div',{style:{display:'flex',gap:8,justifyContent:'flex-end'}},
+            h(Btn,{variant:'soft',size:'sm',onClick:()=>edit(u)},'Modifier'),
+            h(Btn,{variant:'ghost',size:'sm',onClick:()=>setUsers(p=>p.filter(x=>x.id!==u.id))},'Supprimer')))))))))
   );
 }
 
@@ -1004,7 +1092,7 @@ function CFeuilles({feuilles,setFeuilles,presences,setPresences,sancApp,setSancA
           fontSize:'13.5px'
         }},
           h('div', {style:{display:'flex',alignItems:'center',gap:'20px',borderBottom:`2px solid ${T.line}`,paddingBottom:'16px'}},
-            h('img', {src:'/reflogo.avif', style:{
+            h('img', {src:'/logo.png', style:{
               width:'64px',
               height:'64px',
               objectFit:'contain',
@@ -1192,7 +1280,7 @@ function CFeuilles({feuilles,setFeuilles,presences,setPresences,sancApp,setSancA
             fontSize:'13.5px'
           }},
             h('div', {style:{display:'flex',alignItems:'center',gap:'20px',borderBottom:`2px solid ${T.line}`,paddingBottom:'16px'}},
-            h('img', {src:'/reflogo.avif', style:{
+            h('img', {src:'/logo.png', style:{
               width:'64px',
               height:'64px',
               objectFit:'contain',
@@ -1286,7 +1374,7 @@ function CRapports({rapports,matchs,feuilles,actS}){
         fontFamily:'inherit'
       }},
         h('div', {style:{display:'flex',alignItems:'center',gap:'20px',borderBottom:`2px solid ${T.line}`,paddingBottom:'16px'}},
-            h('img', {src:'/reflogo.avif', style:{
+            h('img', {src:'/logo.png', style:{
               width:'64px',
               height:'64px',
               objectFit:'contain',
@@ -1854,7 +1942,7 @@ function RefRapportsTab({arbitre,matchs,feuilles,rapports,setRapports,actS,saiso
           fontFamily:'inherit'
         }},
           h('div', {style:{display:'flex',alignItems:'center',gap:'20px',borderBottom:`2px solid ${T.line}`,paddingBottom:'16px'}},
-            h('img', {src:'/reflogo.avif', style:{
+            h('img', {src:'/logo.png', style:{
               width:'64px',
               height:'64px',
               objectFit:'contain',
@@ -2208,7 +2296,8 @@ const LOGO_SRC="/logo.png";
 ════════════════════════════════════════════ */
 function AssignView({sub,props}){
   const{clubs,setClubs,arbitres,setArbitres,competitions,setCompetitions,
-    matchs,setMatchs,saisons,setSaisons,taux,setTaux,divisions,setDivisions}=props;
+    matchs,setMatchs,saisons,setSaisons,taux,setTaux,divisions,setDivisions,
+    users,setUsers}=props;
   if(sub==='clubs')return h(ClubsTab,{clubs,setClubs});
   if(sub==='arbitres')return h(ArbitresTab,{arbitres,setArbitres});
   if(sub==='saisons')return h(SaisonsTab,{saisons,setSaisons,taux,setTaux,divisions,setDivisions,competitions,setCompetitions});
@@ -2216,6 +2305,7 @@ function AssignView({sub,props}){
   if(sub==='competitions')return h(CompetitionsTab,{competitions,setCompetitions,saisons,divisions});
   if(sub==='matchs')return h(MatchsTab,{matchs,setMatchs,clubs,competitions,divisions,actS:saisons.find(s=>s.statut==='Active')});
   if(sub==='assign')return h(AssignTab,{matchs,setMatchs,arbitres,setArbitres,actS:saisons.find(s=>s.statut==='Active'),competitions,divisions,clubs});
+  if(sub==='users')return h(UsersTab,{users,setUsers,arbitres});
   return null;
 }
 function ComptaView({sub,props}){
@@ -2237,7 +2327,7 @@ const NAV={
       {id:'clubs',label:'Clubs',k:'A'},{id:'arbitres',label:'Arbitres',k:'B'},
       {id:'saisons',label:'Saisons',k:'C'},{id:'divisions',label:'Divisions',k:'D'},
       {id:'competitions',label:'Comp\u00e9titions',k:'E'},{id:'matchs',label:'Matchs',k:'F'},
-      {id:'assign',label:'Assignation',k:'G'}]},
+      {id:'assign',label:'Assignation',k:'G'},{id:'users',label:'Utilisateurs',k:'H'}]},
   compta:{label:'Comptabilit\u00e9',code:'1234',num:'02',
     desc:'Taux, sanctions, feuilles de match et suivi des paiements.',
     items:[
@@ -2253,7 +2343,26 @@ const NAV={
 };
 
 function App(){
-  const[user,setUser]=useLS('pgi3:currentUser',null);
+  const [user, setUser] = useState(() => {
+    try {
+      const s = sessionStorage.getItem('pgi3:currentUser');
+      return s ? JSON.parse(s) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const saveUser = (u) => {
+    setUser(u);
+    try {
+      if (u) {
+        sessionStorage.setItem('pgi3:currentUser', JSON.stringify(u));
+      } else {
+        sessionStorage.removeItem('pgi3:currentUser');
+      }
+    } catch {}
+  };
+
   const[mod,sMod]=useState('assign');
   const[sub,sSub]=useState('clubs');
   const[menuOpen,sMenuOpen]=useState(false);
@@ -2265,7 +2374,7 @@ function App(){
     ref:user?.role==='ref'
   };
   const handleLoginSuccess=(usr)=>{
-    setUser(usr);
+    saveUser(usr);
     sMod(usr.role);
     if(usr.role==='ref'){
       sSub('profil');
@@ -2275,7 +2384,7 @@ function App(){
     if(usr.refId) setRefId(usr.refId);
   };
   const handleLogout=()=>{
-    setUser(null);
+    saveUser(null);
     setRefId(null);
     sMod('assign');
     sSub('clubs');
@@ -2294,8 +2403,9 @@ function App(){
   const[rapports,setRapports]=useLS('pgi3:rapports',[]);
   const[refId,setRefId]=useLS('pgi3:refId',null);
   const[refConfirmations,setRefConfirmations]=useLS('pgi3:refConfirm',[]);
+  const[users,setUsers]=useLS('pgi3:users',[]);
 
-  const assignProps={clubs,setClubs,arbitres,setArbitres,competitions,setCompetitions,matchs,setMatchs,saisons,setSaisons,taux,setTaux,divisions,setDivisions};
+  const assignProps={clubs,setClubs,arbitres,setArbitres,competitions,setCompetitions,matchs,setMatchs,saisons,setSaisons,taux,setTaux,divisions,setDivisions,users,setUsers};
   const comptaProps={saisons,setSaisons,taux,setTaux,sanctions,setSanctions,feuilles,setFeuilles,presences,setPresences,sancApp,setSancApp,competitions,matchs,clubs,divisions,rapports};
   const actS=saisons.find(s=>s.statut==='Active');
   const refProps={arbitres,matchs,feuilles,presences,sancApp,taux,saisons,refId:user?.refId||refId,setRefId:user?.refId?()=>{}:setRefId,refConfirmations,setRefConfirmations,rapports,setRapports,actS};
@@ -2415,7 +2525,7 @@ function App(){
         :h(RefView,{sub,props:refProps}))));
 
   if(!user){
-    return h(LoginPortal,{onSuccess:handleLoginSuccess,arbitres});
+    return h(LoginPortal,{onSuccess:handleLoginSuccess});
   }
 
   return h('div',{style:{display:'flex',minHeight:'100vh',background:T.cream},className:'app-container'},
