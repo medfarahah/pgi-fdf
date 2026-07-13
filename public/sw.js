@@ -1,5 +1,5 @@
-// PGI-FDF Service Worker — v3
-const CACHE_NAME = 'pgi-fdf-v3';
+// PGI-FDF Service Worker — v4
+const CACHE_NAME = 'pgi-fdf-v4';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
