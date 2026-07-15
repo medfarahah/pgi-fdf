@@ -211,19 +211,21 @@ function ConfirmModal({show,title,message,confirmLabel,confirmVariant,onConfirm,
 
 /* ─── Portail de Connexion Unique ─── */
 function LoginPortal({onSuccess}){
-  const[code,sCode]=useState('');
+  const[identifier,sIdentifier]=useState('');
+  const[password,sPassword]=useState('');
   const[err,sE]=useState(false);
   const[loading,sL]=useState(false);
 
   const handleLogin=()=>{
-    const trimmedCode=code.trim();
-    if(!trimmedCode) return;
+    const idVal = identifier.trim();
+    const passVal = password.trim();
+    if(!idVal || !passVal) return;
 
     sL(true);
     fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: trimmedCode })
+      body: JSON.stringify({ identifier: idVal, password: passVal })
     })
       .then(res => {
         if (!res.ok) {
@@ -234,18 +236,20 @@ function LoginPortal({onSuccess}){
       .then(data => {
         sL(false);
         onSuccess({
+          id: data.id,
           role: data.role,
-          label: data.role === 'assign' ? 'Assignation' : data.role === 'compta' ? 'Comptabilité' : 'Arbitre',
+          label: data.role === 'assign' ? 'Assignation' : data.role === 'compta' ? 'Comptabilité' : data.role === 'super_admin' ? 'Super Admin' : 'Arbitre',
           refId: data.refId,
           email: data.email,
-          name: data.name
+          name: data.name,
+          isOtp: data.isOtp
         });
       })
       .catch(err => {
         sL(false);
         sE(true);
-        sCode('');
-        setTimeout(() => sE(false), 2400);
+        sPassword('');
+        setTimeout(() => sE(false), 3000);
       });
   };
 
@@ -256,15 +260,104 @@ function LoginPortal({onSuccess}){
         h('h1',{className:'disp',style:{fontSize:32,fontWeight:700,color:T.ink,lineHeight:1,textAlign:'center'}},'PGI.FDF'),
         h('p',{className:'narrow',style:{fontSize:11,color:T.green,letterSpacing:'0.18em',marginTop:6,fontWeight:700,textTransform:'uppercase'}},'Portail Fédéral de Connexion')
       ),
-      h('div',{style:{marginBottom:28}},
-        h(Field,{label:"Code d'accès ou N° de Licence *"},
-          h('input',{value:code,type:'password',placeholder:'Entrez votre code ou licence',
-            onChange:e=>{sCode(e.target.value);sE(false);},onKeyDown:e=>{if(e.key==='Enter')handleLogin();},
+      h('div',{style:{marginBottom:18}},
+        h(Field,{label:"Identifiant (Email ou N° de Licence) *"},
+          h('input',{value:identifier,type:'text',placeholder:'Entrez votre email ou N° de licence',
+            onChange:e=>{sIdentifier(e.target.value);sE(false);},onKeyDown:e=>{if(e.key==='Enter')handleLogin();},
             ...focusable(),
-            style:{...S.field,fontSize:15,textAlign:'center',height:44,borderBottomColor:err?T.red:T.hair}}))
+            style:{...S.field,fontSize:14,height:44,borderBottomColor:err?T.red:T.hair}}))
       ),
-      err&&h('p',{style:{color:T.red,fontSize:13,textAlign:'center',marginBottom:18,fontWeight:500}},"Code d'accès ou N° de licence incorrect."),
+      h('div',{style:{marginBottom:28}},
+        h(Field,{label:"Mot de passe *"},
+          h('input',{value:password,type:'password',placeholder:'Entrez votre mot de passe',
+            onChange:e=>{sPassword(e.target.value);sE(false);},onKeyDown:e=>{if(e.key==='Enter')handleLogin();},
+            ...focusable(),
+            style:{...S.field,fontSize:14,height:44,borderBottomColor:err?T.red:T.hair}}))
+      ),
+      err&&h('p',{style:{color:T.red,fontSize:13,textAlign:'center',marginBottom:18,fontWeight:500}},"Identifiant ou mot de passe incorrect."),
       h(Btn,{variant:'primary',size:'lg',onClick:handleLogin,disabled:loading,style:{width:'100%',display:'block'}},loading?'Connexion...':'Se connecter')
+    )
+  );
+}
+
+/* ─── Portail de Réinitialisation OTP Obligatoire ─── */
+function OtpResetPortal({user,onSuccess}){
+  const[newCode,sNewCode]=useState('');
+  const[confirmCode,sConfirmCode]=useState('');
+  const[showNewCode,sShowNewCode]=useState(false);
+  const[showConfirmCode,sShowConfirmCode]=useState(false);
+  const[n,sN]=useState(null);
+  const[loading,sL]=useState(false);
+
+  const handleReset=()=>{
+    const code1 = newCode.trim();
+    const code2 = confirmCode.trim();
+    if(!code1){sN({msg:'Le nouveau code d\'accès est obligatoire.',tone:'err'});return;}
+    if(code1 !== code2){sN({msg:'Les deux codes d\'accès ne correspondent pas.',tone:'err'});return;}
+    if(code1.length < 4){sN({msg:'Le code d\'accès doit faire au moins 4 caractères.',tone:'err'});return;}
+
+    sL(true);
+    fetch('/api/users/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: user.id, newCode: code1 })
+    })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error('Erreur lors du changement de mot de passe.');
+        }
+        return res.json();
+      })
+      .then(data => {
+        sL(false);
+        onSuccess(data.user);
+      })
+      .catch(err => {
+        sL(false);
+        sN({msg:'Erreur serveur. Veuillez réessayer.',tone:'err'});
+      });
+  };
+
+  return h('div',{style:{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:T.cream,padding:20}},
+    h('div',{style:{background:T.paper,border:`2px solid ${T.line}`,padding:'48px 40px',width:460,maxWidth:'100%',boxShadow:'0 10px 30px rgba(21,19,14,0.08)'}},
+      h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',marginBottom:24}},
+        h('img',{src:LOGO_SRC,alt:'FDF',style:{width:72,height:'auto',marginBottom:16}}),
+        h('h2',{className:'disp',style:{fontSize:24,fontWeight:700,color:T.ink,textAlign:'center'}},'Sécurité du Compte'),
+        h('p',{style:{fontSize:12.5,color:T.ink3,marginTop:6,textAlign:'center',lineHeight:1.4}},
+          `Bonjour ${user.name || 'Arbitre'}. Vous vous êtes connecté avec un mot de passe temporaire. Pour des raisons de sécurité, veuillez définir votre propre code d'accès privé.`)
+      ),
+      h(Notice,{msg:n?.msg,tone:n?.tone,onClose:()=>sN(null)}),
+      h('div',{style:{marginBottom:18}},
+        h(Field,{label:"Nouveau code d'accès *"},
+          h('div',{style:{position:'relative'}},
+            h('input',{value:newCode,type:showNewCode?'text':'password',placeholder:'Entrez votre nouveau code',
+              onChange:e=>sNewCode(e.target.value),onKeyDown:e=>{if(e.key==='Enter')handleReset();},
+              ...focusable(),
+              style:{...S.field,fontSize:15,textAlign:'center',height:44,paddingRight:54}}),
+            h('button',{
+              type:'button',
+              onClick:()=>sShowNewCode(!showNewCode),
+              style:{position:'absolute',right:12,top:'50%',transform:'translateY(-50%)',
+                background:'none',border:'none',color:T.greenInk,fontSize:11.5,cursor:'pointer',fontWeight:600,padding:4}
+            },showNewCode?'Masquer':'Afficher')
+          ))
+      ),
+      h('div',{style:{marginBottom:28}},
+        h(Field,{label:"Confirmer le nouveau code d'accès *"},
+          h('div',{style:{position:'relative'}},
+            h('input',{value:confirmCode,type:showConfirmCode?'text':'password',placeholder:'Confirmez votre nouveau code',
+              onChange:e=>sConfirmCode(e.target.value),onKeyDown:e=>{if(e.key==='Enter')handleReset();},
+              ...focusable(),
+              style:{...S.field,fontSize:15,textAlign:'center',height:44,paddingRight:54}}),
+            h('button',{
+              type:'button',
+              onClick:()=>sShowConfirmCode(!showConfirmCode),
+              style:{position:'absolute',right:12,top:'50%',transform:'translateY(-50%)',
+                background:'none',border:'none',color:T.greenInk,fontSize:11.5,cursor:'pointer',fontWeight:600,padding:4}
+            },showConfirmCode?'Masquer':'Afficher')
+          ))
+      ),
+      h(Btn,{variant:'primary',size:'lg',onClick:handleReset,disabled:loading,style:{width:'100%',display:'block'}},loading?'Enregistrement...':'Définir mon code d\'accès')
     )
   );
 }
@@ -580,6 +673,77 @@ function UsersTab({users,setUsers,arbitres}){
             h(Btn,{variant:'soft',size:'sm',onClick:()=>edit(u)},'Modifier'),
             h(Btn,{variant:'ghost',size:'sm',onClick:()=>setUsers(p=>p.filter(x=>x.id!==u.id))},'Supprimer')))))))))
   );
+}
+
+function OtpRefsTab({users,setUsers,arbitres}){
+  const[n,sN]=useState(null);
+  
+  const genOtp = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  };
+
+  const generateForRef = (arb) => {
+    const code = genOtp();
+    const existing = users.find(u => u.role === 'ref' && u.refId === arb.id);
+
+    if (existing) {
+      setUsers(p => p.map(u => u.id === existing.id ? { ...u, code, isOtp: true } : u));
+      sN({ msg: `Nouveau mot de passe temporaire (OTP) généré pour ${arb.prenom} ${arb.nom} : « ${code} ». Communiquez-lui ce code.`, tone: 'ok' });
+    } else {
+      const email = arb.email && arb.email.trim() ? arb.email.trim().toLowerCase() : `ref_${arb.id}@fdf.dj`;
+      const name = `${arb.prenom || ''} ${arb.nom || ''}`.trim() || 'Arbitre';
+      const newUser = {
+        id: nid(users),
+        email,
+        name,
+        code,
+        role: 'ref',
+        refId: arb.id,
+        isOtp: true
+      };
+      setUsers(p => [...p, newUser]);
+      sN({ msg: `Compte créé et mot de passe temporaire (OTP) généré pour ${arb.prenom} ${arb.nom} : « ${code} ». Communiquez-lui ce code.`, tone: 'ok' });
+    }
+  };
+
+  return h(Section, null,
+    h(Notice, { msg: n?.msg, tone: n?.tone, onClose: () => sN(null) }),
+    h(Card, null,
+      h(CardHead, { title: "Gestion des accès Arbitres (OTP)", sub: "Générez des mots de passe à usage unique pour permettre aux arbitres de se connecter et de définir leur propre mot de passe." }),
+      arbitres.length === 0 ? h('div', { style: ST.empty }, 'Aucun arbitre enregistré dans le système.') :
+      h('div', { style: { overflowX: 'auto' } }, h('table', { style: ST.table },
+        h('thead', null, h('tr', null, ['Nom', 'Licence', 'Email', 'Statut du Compte', 'Code Actuel / OTP', ''].map(x => h('th', { key: x, style: ST.th }, x)))),
+        h('tbody', null, ...arbitres.map(arb => {
+          const usr = users.find(u => u.role === 'ref' && u.refId === arb.id);
+          const hasAccount = !!usr;
+          const isOtpActive = usr?.isOtp;
+          
+          return h('tr', { key: arb.id },
+            h('td', { style: { ...ST.td, fontWeight: 600, color: C.ink } }, `${arb.prenom} ${arb.nom}`),
+            h('td', { style: ST.td }, arb.licence || '—'),
+            h('td', { style: ST.td }, arb.email || '—'),
+            h('td', { style: ST.td }, 
+              !hasAccount ? h(Badge, { tone: 'neutral' }, 'Aucun compte') :
+              isOtpActive ? h(Badge, { tone: 'amber' }, 'OTP Actif (Attente reset)') :
+              h(Badge, { tone: 'green' }, 'Compte Actif')
+            ),
+            h('td', { style: { ...ST.td, fontFamily: 'monospace', fontWeight: 600 } }, 
+              usr ? (isOtpActive ? `${usr.code} (Temp)` : '••••••') : '—'
+            ),
+            h('td', { style: { ...ST.td, textAlign: 'right' } }, 
+              h(Btn, { variant: 'soft', size: 'sm', onClick: () => generateForRef(arb) }, 
+                hasAccount ? 'Générer OTP' : 'Créer Compte + OTP'
+              )
+            )
+          );
+        }))))
+      )
+    );
 }
 
 
@@ -2325,6 +2489,19 @@ function ComptaView({sub,props}){
   return null;
 }
 
+function SuperAdminView({sub,props}){
+  const{clubs,setClubs,arbitres,setArbitres,competitions,setCompetitions,
+    matchs,setMatchs,saisons,setSaisons,taux,setTaux,divisions,setDivisions,
+    users,setUsers}=props;
+  if(sub==='users')return h(UsersTab,{users,setUsers,arbitres});
+  if(sub==='saisons')return h(SaisonsTab,{saisons,setSaisons,taux,setTaux,divisions,setDivisions,competitions,setCompetitions});
+  if(sub==='competitions')return h(CompetitionsTab,{competitions,setCompetitions,saisons,divisions});
+  if(sub==='matchs')return h(MatchsTab,{matchs,setMatchs,clubs,competitions,divisions,actS:saisons.find(s=>s.statut==='Active')});
+  if(sub==='assign')return h(AssignTab,{matchs,setMatchs,arbitres,setArbitres,actS:saisons.find(s=>s.statut==='Active'),competitions,divisions,clubs});
+  if(sub==='otp_refs')return h(OtpRefsTab,{users,setUsers,arbitres});
+  return null;
+}
+
 const NAV={
   assign:{label:'Assignation',code:'4321',num:'01',
     desc:'R\u00e9f\u00e9rentiels, structure des saisons et d\u00e9signation des arbitres.',
@@ -2345,6 +2522,16 @@ const NAV={
       {id:'identite',label:'Mon compte',k:'A'},{id:'designations',label:'Mes d\u00e9signations',k:'B'},
       {id:'rapports',label:'Rapport de match',k:'C'},{id:'historique',label:'Historique',k:'D'},
       {id:'paiements',label:'Mes paiements',k:'E'},{id:'profil',label:'Mon profil',k:'F'}]},
+  super_admin:{label:'Super Admin',code:'admin',num:'04',
+    desc:'Contr\u00f4le total des utilisateurs, saisons, comp\u00e9titions et d\u00e9signations.',
+    items:[
+      {id:'users',label:'Utilisateurs',k:'A'},
+      {id:'saisons',label:'Saisons',k:'B'},
+      {id:'competitions',label:'Comp\u00e9titions',k:'C'},
+      {id:'matchs',label:'Matchs',k:'D'},
+      {id:'assign',label:'Assignation',k:'E'},
+      {id:'otp_refs',label:'Acc\u00e8s Arbitres (OTP)',k:'F'}
+    ]},
 };
 
 function App(){
@@ -2376,7 +2563,8 @@ function App(){
   const unlocked={
     assign:user?.role==='assign',
     compta:user?.role==='compta',
-    ref:user?.role==='ref'
+    ref:user?.role==='ref',
+    super_admin:user?.role==='super_admin'
   };
   const handleLoginSuccess=(usr)=>{
     saveUser(usr);
@@ -2527,10 +2715,17 @@ function App(){
       h('div',null,header,
         mod==='assign'?h(AssignView,{sub,props:assignProps})
         :mod==='compta'?h(ComptaView,{sub,props:comptaProps})
+        :mod==='super_admin'?h(SuperAdminView,{sub,props:assignProps})
         :h(RefView,{sub,props:refProps}))));
 
   if(!user){
     return h(LoginPortal,{onSuccess:handleLoginSuccess});
+  }
+
+  if(user.isOtp){
+    return h(OtpResetPortal,{user,onSuccess:(updatedUser)=>{
+      saveUser(updatedUser);
+    }});
   }
 
   return h('div',{style:{display:'flex',minHeight:'100vh',background:T.cream},className:'app-container'},

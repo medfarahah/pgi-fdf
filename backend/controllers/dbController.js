@@ -26,6 +26,12 @@ async function ensureSeed() {
       await prisma.user.createMany({
         data: [
           {
+            email: 'admin@fdf.dj',
+            name: 'Super Administrateur',
+            code: 'admin',
+            role: 'super_admin'
+          },
+          {
             email: 'assign@fdf.dj',
             name: 'Responsable Assignation',
             code: '4321',
@@ -47,6 +53,21 @@ async function ensureSeed() {
         ]
       });
       console.log('Default users seeded successfully.');
+    } else {
+      const adminUser = await prisma.user.findUnique({
+        where: { email: 'admin@fdf.dj' }
+      });
+      if (!adminUser) {
+        await prisma.user.create({
+          data: {
+            email: 'admin@fdf.dj',
+            name: 'Super Administrateur',
+            code: 'admin',
+            role: 'super_admin'
+          }
+        });
+        console.log('Super admin seeded successfully.');
+      }
     }
   } catch (err) {
     console.error('Error seeding default users:', err);
@@ -144,43 +165,47 @@ export class DbController {
 
   static async login(req, res, next) {
     try {
-      const { code } = req.body;
-      if (!code) {
-        return res.status(400).json({ error: "Code d'accès ou N° de licence requis" });
+      const { identifier, password } = req.body;
+      if (!identifier || !password) {
+        return res.status(400).json({ error: "Identifiant (Email ou N° de Licence) et mot de passe requis." });
       }
 
-      const trimmedCode = code.trim();
+      const idText = String(identifier).trim();
+      const passText = String(password).trim();
+      let user = null;
 
-      // 1. Try to find a user by their direct code (e.g. for assign/compta or custom code)
-      let user = await prisma.user.findFirst({
+      // 1. Try Referee Login: Check if identifier matches a referee licence number
+      const arbitre = await prisma.arbitre.findFirst({
         where: {
-          code: trimmedCode
+          licence: {
+            equals: idText,
+            mode: 'insensitive'
+          }
         }
       });
 
-      // 2. If not found by code, check if it's an arbitre licence number
-      if (!user) {
-        const arbitre = await prisma.arbitre.findFirst({
+      if (arbitre) {
+        // Find linked user for this referee
+        user = await prisma.user.findFirst({
           where: {
-            licence: {
-              equals: trimmedCode,
-              mode: 'insensitive'
-            }
+            role: 'ref',
+            refId: arbitre.id
           }
         });
-
-        if (arbitre) {
-          user = await prisma.user.findFirst({
-            where: {
-              role: 'ref',
-              refId: arbitre.id
-            }
-          });
-        }
       }
 
+      // 2. Try Email Login: Fallback if not referee licence or if user wasn't found by licence
       if (!user) {
-        return res.status(401).json({ error: "Code d'accès ou N° de licence incorrect" });
+        user = await prisma.user.findUnique({
+          where: {
+            email: idText.toLowerCase()
+          }
+        });
+      }
+
+      // 3. Verify user and password code
+      if (!user || user.code !== passText) {
+        return res.status(401).json({ error: "Identifiant ou mot de passe incorrect." });
       }
 
       res.json({
@@ -188,7 +213,37 @@ export class DbController {
         email: user.email,
         name: user.name,
         role: user.role,
-        refId: user.refId
+        refId: user.refId,
+        isOtp: user.isOtp
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async changePassword(req, res, next) {
+    try {
+      const { userId, newCode } = req.body;
+      if (!userId || !newCode) {
+        return res.status(400).json({ error: "Identifiant utilisateur ou nouveau code manquant." });
+      }
+      const user = await prisma.user.update({
+        where: { id: Number(userId) },
+        data: {
+          code: newCode.trim(),
+          isOtp: false
+        }
+      });
+      res.json({
+        success: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          refId: user.refId,
+          isOtp: user.isOtp
+        }
       });
     } catch (err) {
       next(err);

@@ -164,6 +164,7 @@ model User {
   code      String   @default("1234")
   role      String   @default("ref")
   refId     Int?
+  isOtp     Boolean  @default(false)
   createdAt DateTime @default(now())
 }
 

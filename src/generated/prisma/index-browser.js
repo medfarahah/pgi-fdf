@@ -277,6 +277,7 @@ exports.Prisma.UserScalarFieldEnum = {
   code: 'code',
   role: 'role',
   refId: 'refId',
+  isOtp: 'isOtp',
   createdAt: 'createdAt'
 };
 

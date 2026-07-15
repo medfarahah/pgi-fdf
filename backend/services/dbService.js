@@ -91,13 +91,12 @@ export class DbService {
           });
 
           if (existingUser) {
-            // Update user details to sync with Arbitre changes
+            // Update user details to sync with Arbitre changes, but DO NOT overwrite password code
             await tx.user.update({
               where: { id: existingUser.id },
               data: {
                 email,
-                name,
-                code
+                name
               }
             });
           } else {
@@ -114,7 +113,8 @@ export class DbService {
                 name,
                 code,
                 role: 'ref',
-                refId: arbId
+                refId: arbId,
+                isOtp: true
               }
             });
           }
